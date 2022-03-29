@@ -9,6 +9,7 @@
 // - added a gui
 //
 //Todo:
+// - check if user has twixtor installed
 // - take in files
 // - figure out scene detection using python
 // - figure out how to get python to interact with ae DIRECTLY
@@ -40,6 +41,8 @@
         alert("There is no active comp!");
 		return false;
     }
+
+    // TODO: Check if user has Twixtor installed
 
     //////////////////////////////////////////
     //MAIN UI
@@ -157,6 +160,46 @@
                 layers.push(comp.layer(i));
             }
         }
+
+        //if there is scene detection, detect and cut
+        if(autoCut.value == true) {
+            //scene detection stuff here
+            //probably python?
+        }
+
+        //precomp range of layers
+        var twixFolder = app.project.items.addFolder("Twixtor Precomps");
+        for(var i=1; i <= layers.length; i++) {
+            let precomp = comp.precompose([layers[i].index], "twix_" + layers[i].name, false);
+            precomp.parentFolder = twixFolder;
+        }
+
+        //iterate through all precomps and decide what to do
+        for(var i=1; i <= twixFolder.numItems; i++) {
+            if(constantFPS.value == true) { //3a
+                twixConstant(twixFolder.item(i), 0);
+            } else if(cutFPS.value == true) { //3b
+                
+            } else if(variableFPS.value == true) { //3c
+                twixVariable(twixFolder.item(i));
+            } else if(detectFPS.value == true) { //autodetect one of the top choices
+
+            }
+        }
+    }
+
+    //applies twixtor on a clip
+    function twixConstant(precomp, fps) {
+        //0 fps == default from GUI
+        if(fps == 0) { fps = inputFPS.value }
+
+        //add twixtor
+    }
+
+    //cuts a clip by trying to detect where anims end and start
+    //difficult, maybe not doable
+    function twixVariable(precomp) {
+        
     }
 
     //grabs all the names of the given comp and returns them in a list.
