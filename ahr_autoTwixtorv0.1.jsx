@@ -23,11 +23,11 @@
 // This script is provided "as is," without warranty of any kind, expressed
 // or implied. In no event shall the author be held liable for any damages
 // arising in any way from the use of this script.
-(function ahr_syncMarkers() {
+(function ahr_autoTwixtor() {
 
-    var ahr_SetupStreams = new Object();	// Store globals in an object
-	ahr_SetupStreams.scriptName = "ahr_syncMarkers";
-	ahr_SetupStreams.scriptTitle = ahr_SetupStreams.scriptName + "v1.4";
+    var ahr_autoTwixtor = new Object();	// Store globals in an object
+	ahr_autoTwixtor.scriptName = "ahr_autoTwixtor";
+	ahr_autoTwixtor.scriptTitle = ahr_autoTwixtor.scriptName + "v1.4";
 	
 	// Check that a project exists
 	if (app.project === null) {
@@ -105,7 +105,7 @@
     outLayer.size = [250, 25];
     outLayer.selection = 0;
 
-    //extra effect options
+    //framerate options
     var groupOptions = mainGroup.add("group", undefined, "groupOptions");
     groupOptions.orientation = "column";
     var groupPanel = groupOptions.add("panel", undefined, "Twixtor Settings");
@@ -143,4 +143,6 @@
         }
         return layerNames;
     }
+
+
 })();
