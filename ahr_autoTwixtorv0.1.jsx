@@ -129,10 +129,35 @@
     autoCut.value = false;
     var debug = groupOptions.add("checkbox", undefined, "Debug Program");
     debug.value = false;
-    var finishButton = mainWindow.add("button", undefined, "Go!");
+    var setupButton = mainWindow.add("button", undefined, "Go!");
 
     mainWindow.center();
     mainWindow.show();
+
+    setupButton.onClick = function() {
+        mainWindow.close();
+
+        //grab each layer and put them in a list
+        var layers = [];
+        var comp = app.project.activeItem;
+        var firstLayer = findLayerFromName(comp, inLayer.selection);
+        var lastLayer = findLayerFromName(comp, outLayer.selection);
+
+        //if firstlayer's index is larger than lastlayer's swap what they are
+        if(firstLayer.index > lastLayer.index) {
+            firstLayer, lastLayer = lastLayer, firstLayer;
+        }
+
+        //base case just add the 1 layer
+        if(firstLayer.index == lastLayer.index) {
+            layers = [firstLayer];
+        } else {
+            //iterate through indexes and add list items
+            for(var i=firstLayer.index; i <= lastLayer.index; i++) {
+                layers.push(comp.layer(i));
+            }
+        }
+    }
 
     //grabs all the names of the given comp and returns them in a list.
     function getAllCompLayerNames(comp) {
@@ -144,5 +169,15 @@
         return layerNames;
     }
 
+    //finds a layer in a comp based on it's name
+    function findLayerFromName(comp, layerName) {
+        for(var i=1; i<=comp.layers.length; i++) {
+            if(comp.layers[i].name == layerName.toString()) {
+                return comp.layers[i];
+            }
+        }
+        alert("Error: Could not find layer " + layerName.toString() + "!");
+        return false;
+    }
 
 })();
