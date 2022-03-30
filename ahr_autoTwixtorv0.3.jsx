@@ -7,10 +7,10 @@
 //
 //Changelog:
 // - added a gui
-//
-//Todo:
 // - check if user has twixtor installed
 // - take in files
+//
+//Todo:
 // - figure out scene detection using python
 // - figure out how to get python to interact with ae DIRECTLY
 // - figure out how to get a layer's source path
@@ -135,7 +135,7 @@
     cutFPS.value = false;
     var variableFPS = groupPanel.add("radiobutton", undefined, "Framerate changes often (3c)");
     variableFPS.value = false;
-    var detectFPS = groupPanel.add("radiobutton", undefined, "Detect framerate changes (experimental)");
+    var detectFPS = groupPanel.add("radiobutton", undefined, "Detect framerate(s) of clips (experimental)");
     detectFPS.value = false;
     var threeBText = groupPanel.add("statictext", undefined, "Note: 3b will auto-detect framerate.");
 
@@ -209,6 +209,11 @@
         if((fps == undefined || fps == 0) && precomp.layers[1].frameRate != undefined) { fps = precomp.layers[1].frameRate }
         if(fps == 0 || fps == undefined) { fps = 23.976 }
 
+        //auto detect fps
+        if(detectFPS.value) {
+            fps = detectFPS(precomp.layers[1]);
+        }
+
         //add twixtor
         for(var i=1; i <=precomp.layers.length; i++) {
             precomp.layers[i]("Effects").addProperty("Twixtor Pro");
@@ -217,8 +222,58 @@
         }
     }
 
+    //Returns the FPS of a given layer.
+    //Assumes constant FPS
+    //Uses built-in extendscript stuff
+    function detectFPS(layer) {
+        var fps = layer.frameRate;
+        var precomp;
+        //if fps doesn't match precomp layer and do testing in there
+        if(layer.containingComp.frameRate != fps) {
+            precomp = comp.layers.precompose([layers[i].index], "TEMP", false);
+            layer = precomp.layers(1);
+        }
+
+        //get color space of current frame
+
+        //loop through each frame, get color space until it changes
+        //then determine fps via clip fps/#frames
+
+        //clean up by removing precomp
+        if(precomp != undefined && precomp != null) {
+            precomp.remove();
+        }
+        return fps;
+    }
+
+    //Returns the FPS of a given layer as a dict {fps:#frames, fps:#frames...}
+    //Assumes variable FPS
+    //Uses built-in extendscript stuff
+    function detectVariableFPS(layer) {
+        var fps = {};
+        var precomp;
+        //if fps doesn't match precomp layer and do testing in there
+        if(layer.containingComp.frameRate != fps) {
+            precomp = comp.layers.precompose([layers[i].index], "TEMP", false);
+            layer = precomp.layers(1);
+        }
+
+        //get color space of current frame
+
+        //loop through each frame, get color space until it changes
+
+        //clean up by removing precomp
+        if(precomp != undefined && precomp != null) {
+            precomp.remove();
+        }
+        return fps;
+    }
+
+    
+
     //cuts a clip by trying to detect where anims end and start
     //difficult, maybe not doable
+    //probably need to do configurations to see where 1 starts and the other ends
     function twixVariable(precomp) {
         
     }
