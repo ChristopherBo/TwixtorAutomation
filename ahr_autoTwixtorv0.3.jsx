@@ -203,12 +203,16 @@
     //applies twixtor on a clip
     function twixConstant(precomp, fps) {
         //0 fps == default from GUI
+        //if gui is nothing set to layer 1's fps
+        //if layer 1 doesnt have fps set it to a constant
         if(fps == 0) { fps = inputFPS.value }
+        if((fps == undefined || fps == 0) && precomp.layers[1].frameRate != undefined) { fps = precomp.layers[1].frameRate }
+        if(fps == 0 || fps == undefined) { fps = 23.976 }
 
         //add twixtor
         for(var i=1; i <=precomp.layers.length; i++) {
             precomp.layers[i]("Effects").addProperty("Twixtor Pro");
-            precomp.layers[i].Effects("Twixtor Pro")("In FPS is Out FPS").setValue(false);
+            precomp.layers[i].Effects("Twixtor Pro")("In FPS is Out FPS").setValue(0);
             precomp.layers[i].Effects("Twixtor Pro")("Input: Frame Rate").setValue(fps);
         }
     }
