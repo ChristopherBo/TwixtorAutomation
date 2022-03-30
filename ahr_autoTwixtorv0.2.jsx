@@ -43,7 +43,20 @@
     }
 
     // TODO: Check if user has Twixtor installed
-
+    function checkForInstalledEffect(){
+        var effects = app.effects;
+        for (var i = 0; i < effects.length; i++){
+            if (effects.displayName == 'Twixtor'){
+                return true;
+            }
+        }
+        return false;
+    }
+    if(checkForInstalledEffect() == false) {
+        alert("Twixtor is not installed!");
+        return false;
+    }
+    
     //////////////////////////////////////////
     //MAIN UI
     //////////////////////////////////////////
