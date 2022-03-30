@@ -42,11 +42,10 @@
 		return false;
     }
 
-    // TODO: Check if user has Twixtor installed
     function checkForInstalledEffect(){
         var effects = app.effects;
         for (var i = 0; i < effects.length; i++){
-            if (effects.displayName == 'Twixtor'){
+            if (effects[i].displayName == "Twixtor Pro") {
                 return true;
             }
         }
@@ -56,7 +55,7 @@
         alert("Twixtor is not installed!");
         return false;
     }
-    
+
     //////////////////////////////////////////
     //MAIN UI
     //////////////////////////////////////////
@@ -182,8 +181,8 @@
 
         //precomp range of layers
         var twixFolder = app.project.items.addFolder("Twixtor Precomps");
-        for(var i=1; i <= layers.length; i++) {
-            let precomp = comp.precompose([layers[i].index], "twix_" + layers[i].name, false);
+        for(var i=0; i < layers.length; i++) {
+            var precomp = comp.layers.precompose([layers[i].index], "twix_"+ layers[i].name, false);
             precomp.parentFolder = twixFolder;
         }
 
@@ -207,6 +206,11 @@
         if(fps == 0) { fps = inputFPS.value }
 
         //add twixtor
+        for(var i=1; i <=precomp.layers.length; i++) {
+            precomp.layers[i]("Effects").addProperty("Twixtor Pro");
+            precomp.layers[i].Effects("Twixtor Pro")("In FPS is Out FPS").setValue(false);
+            precomp.layers[i].Effects("Twixtor Pro")("Input: Frame Rate").setValue(fps);
+        }
     }
 
     //cuts a clip by trying to detect where anims end and start
