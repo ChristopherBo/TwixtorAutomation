@@ -183,11 +183,20 @@
         //precomp range of layers
         var twixFolder = app.project.items.addFolder("Twixtor Precomps");
         for(var i=0; i < layers.length; i++) {
+            var layerIndex = layers[i].index;
             var precomp = comp.layers.precompose([layers[i].index], "twix_"+ layers[i].name, false);
-            precomp.duration = layers[i].outPoint - layers[i].inPoint;
-            precomp.layers[1].outPoint = precomp.duration;
-            precomp.layers[1].inPoint = layers[i].inPoint;
+            var precompLayer = comp.layers[layerIndex];
+            //precomp fits the same area and same duration as original
+            // precomp.duration = layers[i].outPoint - layers[i].inPoint;
+            // precomp.layers[1].outPoint = precomp.duration;
+            // precomp.layers[1].inPoint = layers[i].inPoint;
             precomp.parentFolder = twixFolder;
+
+            //enable time remapping on each clip, add points to in and out, remove first and last points
+            precompLayer.timeRemapEnabled = true;
+
+            precompLayer.timeRemap.setValueAtTime(precompLayer.inPoint, precompLayer.inPoint);
+            precompLayer.timeRemap.setValueAtTime(precompLayer.outPoint, precompLayer.outPoint);
         }
 
         //iterate through all precomps and decide what to do
@@ -221,7 +230,11 @@
         //add twixtor
         for(var i=1; i <=precomp.layers.length; i++) {
             precomp.layers[i]("Effects").addProperty("Twixtor Pro");
-            precomp.layers[i].Effects("Twixtor Pro")("In FPS is Out FPS").setValue(0);
+            try {
+                precomp.layers[i].Effects("Twixtor Pro")("In FPS is Out FPS").setValue(0);
+            } catch (Error) {
+                //do nothing
+            }
             precomp.layers[i].Effects("Twixtor Pro")("Input: Frame Rate").setValue(fps);
         }
     }
