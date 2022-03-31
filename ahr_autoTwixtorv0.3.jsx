@@ -11,6 +11,7 @@
 // - take in files
 //
 //Todo:
+// - make precomp duration same as clip duration
 // - figure out scene detection using python
 // - figure out how to get python to interact with ae DIRECTLY
 // - figure out how to get a layer's source path
@@ -183,6 +184,9 @@
         var twixFolder = app.project.items.addFolder("Twixtor Precomps");
         for(var i=0; i < layers.length; i++) {
             var precomp = comp.layers.precompose([layers[i].index], "twix_"+ layers[i].name, false);
+            precomp.duration = layers[i].outPoint - layers[i].inPoint;
+            precomp.layers[1].outPoint = precomp.duration;
+            precomp.layers[1].inPoint = layers[i].inPoint;
             precomp.parentFolder = twixFolder;
         }
 
@@ -211,7 +215,7 @@
 
         //auto detect fps
         if(detectFPS.value) {
-            fps = detectFPS(precomp.layers[1]);
+            fps = detectFramerate(precomp.layers[1]);
         }
 
         //add twixtor
@@ -225,7 +229,7 @@
     //Returns the FPS of a given layer.
     //Assumes constant FPS
     //Uses built-in extendscript stuff
-    function detectFPS(layer) {
+    function detectFramerate(layer) {
         var fps = layer.frameRate;
         var precomp;
         //if fps doesn't match precomp layer and do testing in there
