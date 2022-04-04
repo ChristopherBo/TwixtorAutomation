@@ -187,16 +187,23 @@
             var precomp = comp.layers.precompose([layers[i].index], "twix_"+ layers[i].name, false);
             var precompLayer = comp.layers[layerIndex];
             //precomp fits the same area and same duration as original
-            // precomp.duration = layers[i].outPoint - layers[i].inPoint;
-            // precomp.layers[1].outPoint = precomp.duration;
-            // precomp.layers[1].inPoint = layers[i].inPoint;
+            // precomp.displayStartTime = precompLayer.inPoint - precompLayer.startTime;
+            precomp.duration = precompLayer.outPoint - precompLayer.startTime;
+            precomp.layers[1].outPoint = precompLayer.outPoint - precompLayer.startTime;
+            precomp.layers[1].inPoint = precompLayer.inPoint - precompLayer.startTime;
+            precomp.layers[1].startTime = -precompLayer.inPoint + precompLayer.startTime;
             precomp.parentFolder = twixFolder;
 
-            //enable time remapping on each clip, add points to in and out, remove first and last points
+            //enable time remapping on each clip
             precompLayer.timeRemapEnabled = true;
 
-            precompLayer.timeRemap.setValueAtTime(precompLayer.inPoint, precompLayer.inPoint);
-            precompLayer.timeRemap.setValueAtTime(precompLayer.outPoint, precompLayer.outPoint);
+            //add points to in and out
+            precompLayer.timeRemap.setValueAtTime(precompLayer.inPoint, precompLayer.inPoint - precompLayer.startTime);
+            precompLayer.timeRemap.setValueAtTime(precompLayer.outPoint, precompLayer.outPoint - precompLayer.startTime - (1/24));
+
+            //remove first and last time remap points
+            precompLayer.timeRemap.removeKey(precompLayer.timeRemap.nearestKeyIndex(0));
+            precompLayer.timeRemap.removeKey(precompLayer.timeRemap.nearestKeyIndex(precomp.duration + precompLayer.startTime));
         }
 
         //iterate through all precomps and decide what to do
