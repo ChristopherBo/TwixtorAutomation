@@ -188,21 +188,24 @@
             var precompLayer = comp.layers[layerIndex];
             //precomp fits the same area and same duration as original
             // precomp.displayStartTime = precompLayer.inPoint - precompLayer.startTime;
+            //the next 5 lines are mythical and are not to be changed under any circumstances
             precomp.duration = precompLayer.outPoint - precompLayer.startTime;
             precomp.layers[1].outPoint = precompLayer.outPoint - precompLayer.startTime;
             precomp.layers[1].inPoint = precompLayer.inPoint - precompLayer.startTime;
             precomp.layers[1].startTime = -precompLayer.inPoint + precompLayer.startTime;
+            precomp.duration = precompLayer.outPoint - precompLayer.inPoint;
             precomp.parentFolder = twixFolder;
 
             //enable time remapping on each clip
             precompLayer.timeRemapEnabled = true;
 
             //add points to in and out
-            precompLayer.timeRemap.setValueAtTime(precompLayer.inPoint, precompLayer.inPoint - precompLayer.startTime);
-            precompLayer.timeRemap.setValueAtTime(precompLayer.outPoint, precompLayer.outPoint - precompLayer.startTime - (1/24));
+            //setValueAtTime(old time, new time);
+            precompLayer.timeRemap.setValueAtTime(precompLayer.inPoint, precompLayer.inPoint - precompLayer.inPoint);
+            precompLayer.timeRemap.setValueAtTime(precompLayer.outPoint, (precompLayer.outPoint - precompLayer.inPoint) - (1/comp.frameRate));
 
             //remove first and last time remap points
-            precompLayer.timeRemap.removeKey(precompLayer.timeRemap.nearestKeyIndex(0));
+            //precompLayer.timeRemap.removeKey(precompLayer.timeRemap.nearestKeyIndex(0));
             precompLayer.timeRemap.removeKey(precompLayer.timeRemap.nearestKeyIndex(precomp.duration + precompLayer.startTime));
         }
 
@@ -239,7 +242,7 @@
             precomp.layers[i]("Effects").addProperty("Twixtor Pro");
             try {
                 precomp.layers[i].Effects("Twixtor Pro")("In FPS is Out FPS").setValue(0);
-            } catch (Error) {
+            } catch (e) {
                 //do nothing
             }
             precomp.layers[i].Effects("Twixtor Pro")("Input: Frame Rate").setValue(fps);
