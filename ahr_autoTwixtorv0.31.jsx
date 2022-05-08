@@ -130,7 +130,7 @@
     var constantFPS = inputFPSGroup.add("radiobutton", undefined, "Constant Framerate (3a):");
     constantFPS.value = true;
     var inputFPS = inputFPSGroup.add("edittext", undefined, "");
-    inputFPS.preferredSize.width = 35;
+    inputFPS.preferredSize.width = 45;
     inputFPS.preferredSize.height = 17;
     var cutFPS = groupPanel.add("radiobutton", undefined, "Framerate occasionally changes (3b)");
     cutFPS.value = false;
@@ -227,7 +227,7 @@
     function twixConstant(precomp, fps) {
         //0 fps == default from GUI
         //if gui is nothing set to layer 1's fps
-        //if layer 1 doesnt have fps set it to a constant
+        //if layer 1 doesnt have fps set it to 23.976
         if(fps == 0) { fps = inputFPS.value }
         if((fps == undefined || fps == 0) && precomp.layers[1].frameRate != undefined) { fps = precomp.layers[1].frameRate }
         if(fps == 0 || fps == undefined) { fps = 23.976 }
@@ -253,10 +253,11 @@
     //Assumes constant FPS
     //Uses built-in extendscript stuff
     function detectFramerate(layer) {
-        var fps = layer.frameRate;
+        var fps = layer.source.frameRate;
         var precomp;
+        var comp = layer.containingComp;
         //if fps doesn't match precomp layer and do testing in there
-        if(layer.containingComp.frameRate != fps) {
+        if(comp.frameRate != fps) {
             precomp = comp.layers.precompose([layers[i].index], "TEMP", false);
             layer = precomp.layers(1);
         }
@@ -265,6 +266,21 @@
 
         //loop through each frame, get color space until it changes
         //then determine fps via clip fps/#frames
+
+        // list of all fps changes
+        var splits = splitScene(comp, layer);
+
+        //fps based on averaging differences of all times
+        // var random = genRand(0, splits.length-1, 0);
+        // fps = 1 / (splits[random] - splits[random - 1]);
+        if(splits.length > 0) {
+            var tempfps = 0;
+            tempfps += (splits[1] - splits[0]);
+            for(var i=2; i < splits.length-1; i++) {
+                tempfps += 1 / (splits[i] - splits[i-1]);
+            }
+            fps = Math.round(tempfps / splits.length); //round to int
+        }
 
         //clean up by removing precomp
         if(precomp != undefined && precomp != null) {
@@ -302,7 +318,17 @@
     //difficult, maybe not doable
     //probably need to do configurations to see where 1 starts and the other ends
     function twixVariable(precomp) {
+        var layer = precomp.layers(1);
+        layer.timeRemapEnabled = true;
         
+        // list of all fps changes
+        var splits = splitScene(comp, layer);
+
+        if(splits.length > 0) {
+            for(var i=0; i < splits.length-1; i++) {
+                layer.setValueAtTime(i/precomp.frameRate, splits[i]);
+            }
+        }
     }
 
     //grabs all the names of the given comp and returns them in a list.
@@ -325,5 +351,103 @@
         alert("Error: Could not find layer " + layerName.toString() + "!");
         return false;
     }
+
+    // modified from NTProduction's scene detect script, free online
+    // returns every frame the scene changed
+    function splitScene(comp, layer) {
+        // lower = more sensitive, default = 100
+        var threshold = 100; 
+        var rText = comp.layers.addText();
+        var gText = comp.layers.addText();
+        var bText = comp.layers.addText();
+    
+        rText.property("Source Text").expression = 'targetLayer = thisComp.layer("'+layer.name+'"); samplePoint = [thisComp.width/2, thisComp.height/2]; sampleRadius = [thisComp.width,thisComp.height]; sampledColor_8bpc = 255 * targetLayer.sampleImage(samplePoint, sampleRadius, true, time); R = Math.round(sampledColor_8bpc[0]); text.sourceText = R';
+        gText.property("Source Text").expression = 'targetLayer = thisComp.layer("'+layer.name+'"); samplePoint = [thisComp.width/2, thisComp.height/2]; sampleRadius = [thisComp.width,thisComp.height]; sampledColor_8bpc = 255 * targetLayer.sampleImage(samplePoint, sampleRadius, true, time); R = Math.round(sampledColor_8bpc[1]); text.sourceText = R';
+        bText.property("Source Text").expression = 'targetLayer = thisComp.layer("'+layer.name+'"); samplePoint = [thisComp.width/2, thisComp.height/2]; sampleRadius = [thisComp.width,thisComp.height]; sampledColor_8bpc = 255 * targetLayer.sampleImage(samplePoint, sampleRadius, true, time); R = Math.round(sampledColor_8bpc[2]); text.sourceText = R';
+    
+        writeToRGBFile(parseInt(rText.property("Source Text").value), parseInt(gText.property("Source Text").value), parseInt(bText.property("Source Text").value));
+    
+        var splitTimes = [];
+    
+        comp.time=0;
+        var ogR, ogG, ogB;
+        var r, g, b;
+        var temp = readRGBFile();
+        ogR = temp[0];
+        ogG = temp[1];
+        ogB = temp[2];
+    
+        var ogLuma, luma;
+        ogLuma = (ogR+ogG+ogB)/3;
+    
+        var frameIncrement = 1; //go frame by frame
+        var frameRate = Math.floor(1/comp.frameDuration);
+         for(var i = comp.time*frameRate; i < comp.duration*frameRate; i+=frameIncrement) {
+    
+            // move forward in time
+            comp.time+=frameIncrement/frameRate;
+            
+            // write new values in file
+            writeToRGBFile(parseInt(rText.property("Source Text").value), parseInt(gText.property("Source Text").value), parseInt(bText.property("Source Text").value));
+    
+            temp = readRGBFile();
+            r = temp[0];
+            g = temp[1];
+            b = temp[2];
+    
+            luma = (r+g+b)/3;
+            if(ogLuma / luma * 100 > threshold || luma / ogLuma * 100 > threshold) {
+                splitTimes.push(i/frameRate);
+            }
+    
+            ogLuma = luma;
+            ogR = r;
+            ogG = g;
+            ogB = b;
+    
+         }
+         splitTimes.shift();
+    
+         //alert(splitTimes);
+    
+        rText.remove();
+        gText.remove();
+        bText.remove();
+    
+        return splitTimes;
+    
+        layer.remove();
+    }
+    
+    function writeToRGBFile(r, g, b) {
+        var rgbFile = File("~/Documents/rgb.txt");
+        rgbFile.open("w");
+        rgbFile.write(r+"\r"+g+"\r"+b);
+        rgbFile.close();
+    }
+    
+    function readRGBFile() {
+        var rgbFile = File("~/Documents/rgb.txt");
+        rgbFile.open("r");
+        var data = rgbFile.read().split("\n");
+        rgbFile.close();
+    
+        return data;
+    }
+
+    //from goodboy ninja: https://www.goodboy.ninja/snippets/generate-a-random-number
+    function genRand(min, max, decimalPlaces) {
+        // you could add some error checking to make sure all arguments exist
+        
+        var result = Math.random() * (max - min) + min;
+        if (decimalPlaces > 0) {
+          var power = Math.pow(10, decimalPlaces);
+          var result = Math.floor(result * power) / power;
+        }
+        if (decimalPlaces === 0) {
+          result = Math.round(result);
+        }
+        return result;
+      }
 
 })();
