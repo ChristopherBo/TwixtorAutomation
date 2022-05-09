@@ -127,19 +127,20 @@
     var groupOptions = mainGroup.add("group", undefined, "groupOptions");
     groupOptions.orientation = "column";
     var groupPanel = groupOptions.add("panel", undefined, "Twixtor Settings");
-    var inputFPSGroup = groupPanel.add("group", undefined, "inputFPSGroup");
-    inputFPSGroup.orientation = "row";
-    var constantFPS = inputFPSGroup.add("radiobutton", undefined, "Constant Framerate (3a):");
+    // archived manual fps input, radio buttons dont work with cleaner design of it 
+    // var inputFPSGroup = groupPanel.add("group", undefined, "inputFPSGroup");
+    // inputFPSGroup.orientation = "row";
+    // var inputFPS = inputFPSGroup.add("edittext", undefined, "");
+    // inputFPS.preferredSize.width = 45;
+    // inputFPS.preferredSize.height = 17;
+    var constantFPS = groupPanel.add("radiobutton", undefined, "Constant Framerate (3a):");
     constantFPS.value = true;
-    var inputFPS = inputFPSGroup.add("edittext", undefined, "");
-    inputFPS.preferredSize.width = 45;
-    inputFPS.preferredSize.height = 17;
     var cutFPS = groupPanel.add("radiobutton", undefined, "Framerate occasionally changes (3b)");
     cutFPS.value = false;
     var variableFPS = groupPanel.add("radiobutton", undefined, "Framerate changes often (3c)");
     variableFPS.value = false;
     var detectFPS = groupPanel.add("checkbox", undefined, "Detect framerate(s) of clips (experimental)");
-    detectFPS.value = false;
+    detectFPS.value = true;
     var threeBText = groupPanel.add("statictext", undefined, "Note: 3b will auto-detect framerate.");
 
     //experimental features and misc buttons
@@ -221,6 +222,7 @@
                 
             } else if(variableFPS.value == true) { //3c
                 twixVariable(twixFolder.item(i));
+                //todo: change comp duration and time remap keyframes accordingly
             } else if(detectFPS.value == true) { //autodetect one of the top choices
 
             }
@@ -324,16 +326,16 @@
     //difficult, maybe not doable
     //probably need to do configurations to see where 1 starts and the other ends
     function twixVariable(precomp) {
-        var layer = precomp.layers(1);
+        var layer = precomp.layers[1];
         layer.timeRemapEnabled = true;
         
         // list of all fps changes
-        var splits = splitScene(comp, layer);
+        var splits = splitScene(precomp, layer);
 
         //set each fps change as a new frame
         if(splits.length > 0) {
             for(var i=0; i < splits.length-1; i++) {
-                layer.setValueAtTime(i/precomp.frameRate, splits[i]);
+                layer.timeRemap.setValueAtTime(i/precomp.frameRate, splits[i] + Math.abs(layer.startTime));
             }
             //shorten precomp duration to fps
         }
