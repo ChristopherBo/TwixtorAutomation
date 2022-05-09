@@ -324,10 +324,12 @@
         // list of all fps changes
         var splits = splitScene(comp, layer);
 
+        //set each fps change as a new frame
         if(splits.length > 0) {
             for(var i=0; i < splits.length-1; i++) {
                 layer.setValueAtTime(i/precomp.frameRate, splits[i]);
             }
+            //shorten precomp duration to fps
         }
     }
 
@@ -365,17 +367,17 @@
         gText.property("Source Text").expression = 'targetLayer = thisComp.layer("'+layer.name+'"); samplePoint = [thisComp.width/2, thisComp.height/2]; sampleRadius = [thisComp.width,thisComp.height]; sampledColor_8bpc = 255 * targetLayer.sampleImage(samplePoint, sampleRadius, true, time); R = Math.round(sampledColor_8bpc[1]); text.sourceText = R';
         bText.property("Source Text").expression = 'targetLayer = thisComp.layer("'+layer.name+'"); samplePoint = [thisComp.width/2, thisComp.height/2]; sampleRadius = [thisComp.width,thisComp.height]; sampledColor_8bpc = 255 * targetLayer.sampleImage(samplePoint, sampleRadius, true, time); R = Math.round(sampledColor_8bpc[2]); text.sourceText = R';
     
-        writeToRGBFile(parseInt(rText.property("Source Text").value), parseInt(gText.property("Source Text").value), parseInt(bText.property("Source Text").value));
+        //writeToRGBFile(parseInt(rText.property("Source Text").value), parseInt(gText.property("Source Text").value), parseInt(bText.property("Source Text").value));
     
         var splitTimes = [];
     
         comp.time=0;
         var ogR, ogG, ogB;
         var r, g, b;
-        var temp = readRGBFile();
-        ogR = temp[0];
-        ogG = temp[1];
-        ogB = temp[2];
+        //var temp = readRGBFile();
+        ogR = rText.property("Source Text").value;
+        ogG = gText.property("Source Text").value;
+        ogB = bText.property("Source Text").value;
     
         var ogLuma, luma;
         ogLuma = (ogR+ogG+ogB)/3;
@@ -388,12 +390,12 @@
             comp.time+=frameIncrement/frameRate;
             
             // write new values in file
-            writeToRGBFile(parseInt(rText.property("Source Text").value), parseInt(gText.property("Source Text").value), parseInt(bText.property("Source Text").value));
+            //writeToRGBFile(parseInt(rText.property("Source Text").value), parseInt(gText.property("Source Text").value), parseInt(bText.property("Source Text").value));
     
-            temp = readRGBFile();
-            r = temp[0];
-            g = temp[1];
-            b = temp[2];
+            //temp = readRGBFile();
+            r = rText.property("Source Text").value;
+            g = gText.property("Source Text").value;
+            b = bText.property("Source Text").value;
     
             luma = (r+g+b)/3;
             if(ogLuma / luma * 100 > threshold || luma / ogLuma * 100 > threshold) {
@@ -415,8 +417,7 @@
         bText.remove();
     
         return splitTimes;
-    
-        layer.remove();
+        //layer.remove();
     }
     
     function writeToRGBFile(r, g, b) {
