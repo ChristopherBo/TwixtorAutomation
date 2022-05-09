@@ -153,6 +153,8 @@
     setupButton.onClick = function() {
         mainWindow.close();
 
+        app.beginUndoGroup("Auto Twixtor Script");
+
         //grab each layer and put them in a list
         var layers = [];
         var comp = app.project.activeItem;
@@ -221,6 +223,8 @@
 
             }
         }
+
+        app.endUndoGroup();
     }
 
     //applies twixtor on a clip
@@ -371,7 +375,7 @@
     
         var splitTimes = [];
     
-        comp.time=0;
+        comp.time = 0;
         var ogR, ogG, ogB;
         var r, g, b;
         //var temp = readRGBFile();
@@ -387,7 +391,7 @@
          for(var i = comp.time*frameRate; i < comp.duration*frameRate; i+=frameIncrement) {
     
             // move forward in time
-            comp.time+=frameIncrement/frameRate;
+            comp.time += frameIncrement/frameRate;
             
             // write new values in file
             //writeToRGBFile(parseInt(rText.property("Source Text").value), parseInt(gText.property("Source Text").value), parseInt(bText.property("Source Text").value));
