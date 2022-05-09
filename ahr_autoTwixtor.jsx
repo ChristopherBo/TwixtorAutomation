@@ -12,6 +12,7 @@
 // - rudimentary fps checker implemented
 // - undo works in 1 button for entire script actions instead of 1 by 1
 // - make precomp duration same as clip duration
+// - 3c works
 //
 //Todo:
 // - figure out scene detection using python
@@ -31,7 +32,7 @@
 
     var ahr_autoTwixtor = new Object();	// Store globals in an object
 	ahr_autoTwixtor.scriptName = "ahr_autoTwixtor";
-	ahr_autoTwixtor.scriptTitle = ahr_autoTwixtor.scriptName + "v1.4";
+	ahr_autoTwixtor.scriptTitle = ahr_autoTwixtor.scriptName + "v0.4";
 	
 	// Check that a project exists
 	if (app.project === null) {
@@ -62,7 +63,7 @@
     //////////////////////////////////////////
     //MAIN UI
     //////////////////////////////////////////
-    var mainWindow = new Window("palette", "AHRevolver's Auto Twixtor Script v0.4", undefined);
+    var mainWindow = new Window("palette", "AHRevolver's Auto Twixtor Script v0.5", undefined);
     mainWindow.orientation = "column";
 
     var mainGroup = mainWindow.add("group", undefined, "mainGroup");
@@ -216,15 +217,18 @@
 
         //iterate through all precomps and decide what to do
         for(var i=1; i <= twixFolder.numItems; i++) {
+            precomp = twixFolder.item(i);
+            //slice cuts off the first 5 letters- the twix_ part
+            precompLayer = matchNameToLayer(precomp.name.slice(5), comp);
             if(constantFPS.value == true) { //3a
-                twixConstant(twixFolder.item(i), 0);
+                twixConstant(precomp, 0);
             } else if(cutFPS.value == true) { //3b
                 
             } else if(variableFPS.value == true) { //3c
-                var keyframes = twixVariable(twixFolder.item(i));
+                var keyframes = twixVariable(precomp);
                 //todo: change comp duration and time remap keyframes accordingly
-                precomp.duration = keyframes/precomp.frameRate;
-                precompLayer.timeRemap.setValueAtTime(precompLayer.inPoint + (keyframes/comp.frameRate), keyframes/precomp.frameRate);
+                precomp.duration = (keyframes - 1)/precomp.frameRate;
+                precompLayer.timeRemap.setValueAtTime(precompLayer.inPoint + (keyframes/comp.frameRate), (keyframes - 1)/precomp.frameRate);
                 precompLayer.timeRemap.removeKey(precompLayer.timeRemap.nearestKeyIndex(precompLayer.outPoint));
                 precompLayer.outPoint = precompLayer.inPoint + ((keyframes + 1)/comp.frameRate);
             } else if(detectFPS.value == true) { //autodetect one of the top choices
@@ -463,6 +467,17 @@
           result = Math.round(result);
         }
         return result;
+      }
+
+      //matches a name to a layer in a given comp
+      //written by yours truly
+      function matchNameToLayer(name, comp) {
+        for(var i=1; i < comp.layers.length; i++) {
+            if(comp.layer(i).name == name) {
+                return comp.layer(i);
+            }
+        }
+        return null;
       }
 
 })();
