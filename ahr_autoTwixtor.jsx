@@ -9,9 +9,11 @@
 // - added a gui
 // - check if user has twixtor installed
 // - take in files
+// - rudimentary fps checker implemented
+// - undo works in 1 button for entire script actions instead of 1 by 1
+// - make precomp duration same as clip duration
 //
 //Todo:
-// - make precomp duration same as clip duration
 // - figure out scene detection using python
 // - figure out how to get python to interact with ae DIRECTLY
 // - figure out how to get a layer's source path
@@ -60,7 +62,7 @@
     //////////////////////////////////////////
     //MAIN UI
     //////////////////////////////////////////
-    var mainWindow = new Window("palette", "AHRevolver's Auto Twixtor Script v0.1", undefined);
+    var mainWindow = new Window("palette", "AHRevolver's Auto Twixtor Script v0.4", undefined);
     mainWindow.orientation = "column";
 
     var mainGroup = mainWindow.add("group", undefined, "mainGroup");
@@ -136,7 +138,7 @@
     cutFPS.value = false;
     var variableFPS = groupPanel.add("radiobutton", undefined, "Framerate changes often (3c)");
     variableFPS.value = false;
-    var detectFPS = groupPanel.add("radiobutton", undefined, "Detect framerate(s) of clips (experimental)");
+    var detectFPS = groupPanel.add("checkbox", undefined, "Detect framerate(s) of clips (experimental)");
     detectFPS.value = false;
     var threeBText = groupPanel.add("statictext", undefined, "Note: 3b will auto-detect framerate.");
 
