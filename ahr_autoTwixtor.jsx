@@ -207,7 +207,7 @@
             //add points to in and out
             //setValueAtTime(old time, new time);
             precompLayer.timeRemap.setValueAtTime(precompLayer.inPoint, precompLayer.inPoint - precompLayer.inPoint);
-            precompLayer.timeRemap.setValueAtTime(precompLayer.outPoint, (precompLayer.outPoint - precompLayer.inPoint) - (1/comp.frameRate));
+            precompLayer.timeRemap.setValueAtTime(precompLayer.outPoint - (1/comp.frameRate), (precompLayer.outPoint - precompLayer.inPoint) - (1/comp.frameRate));
 
             //remove first and last time remap points
             //precompLayer.timeRemap.removeKey(precompLayer.timeRemap.nearestKeyIndex(0));
@@ -221,8 +221,12 @@
             } else if(cutFPS.value == true) { //3b
                 
             } else if(variableFPS.value == true) { //3c
-                twixVariable(twixFolder.item(i));
+                var keyframes = twixVariable(twixFolder.item(i));
                 //todo: change comp duration and time remap keyframes accordingly
+                precomp.duration = keyframes/precomp.frameRate;
+                precompLayer.timeRemap.setValueAtTime(precompLayer.inPoint + (keyframes/comp.frameRate), keyframes/precomp.frameRate);
+                precompLayer.timeRemap.removeKey(precompLayer.timeRemap.nearestKeyIndex(precompLayer.outPoint));
+                precompLayer.outPoint = precompLayer.inPoint + ((keyframes + 1)/comp.frameRate);
             } else if(detectFPS.value == true) { //autodetect one of the top choices
 
             }
@@ -236,7 +240,7 @@
         //0 fps == default from GUI
         //if gui is nothing set to layer 1's fps
         //if layer 1 doesnt have fps set it to 23.976
-        if(fps == 0) { fps = inputFPS.value }
+        // if(fps == 0) { fps = inputFPS.value } old code relating to manual fps input
         if((fps == undefined || fps == 0) && precomp.layers[1].frameRate != undefined) { fps = precomp.layers[1].frameRate }
         if(fps == 0 || fps == undefined) { fps = 23.976 }
 
@@ -339,6 +343,8 @@
             }
             //shorten precomp duration to fps
         }
+
+        return splits.length;
     }
 
     //grabs all the names of the given comp and returns them in a list.
