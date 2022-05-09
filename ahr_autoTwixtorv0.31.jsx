@@ -379,9 +379,9 @@
         var ogR, ogG, ogB;
         var r, g, b;
         //var temp = readRGBFile();
-        ogR = rText.property("Source Text").value;
-        ogG = gText.property("Source Text").value;
-        ogB = bText.property("Source Text").value;
+        ogR = parseInt(rText.property("Source Text").value);
+        ogG = parseInt(gText.property("Source Text").value);
+        ogB = parseInt(bText.property("Source Text").value);
     
         var ogLuma, luma;
         ogLuma = (ogR+ogG+ogB)/3;
@@ -397,9 +397,9 @@
             //writeToRGBFile(parseInt(rText.property("Source Text").value), parseInt(gText.property("Source Text").value), parseInt(bText.property("Source Text").value));
     
             //temp = readRGBFile();
-            r = rText.property("Source Text").value;
-            g = gText.property("Source Text").value;
-            b = bText.property("Source Text").value;
+            r = parseInt(rText.property("Source Text").value);
+            g = parseInt(gText.property("Source Text").value);
+            b = parseInt(bText.property("Source Text").value);
     
             luma = (r+g+b)/3;
             if(ogLuma / luma * 100 > threshold || luma / ogLuma * 100 > threshold) {
