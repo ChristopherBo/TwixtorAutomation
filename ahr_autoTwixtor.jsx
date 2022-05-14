@@ -1,4 +1,4 @@
-//ahr_autoTwixtorv0.1.jsx
+//ahr_autoTwixtorv0.4.jsx
 // Copyright (c) 2022 AHRevolvers. All rights reserved.
 //
 // This script will automatically setup twixtor for a user based on this article,
@@ -15,6 +15,7 @@
 // - 3c works
 //
 //Todo:
+// - screw around with the extendscript detection system
 // - figure out scene detection using python
 // - figure out how to get python to interact with ae DIRECTLY
 // - figure out how to get a layer's source path
@@ -63,7 +64,7 @@
     //////////////////////////////////////////
     //MAIN UI
     //////////////////////////////////////////
-    var mainWindow = new Window("palette", "AHRevolver's Auto Twixtor Script v0.5", undefined);
+    var mainWindow = new Window("palette", "AHRevolver's Auto Twixtor Script v0.4", undefined);
     mainWindow.orientation = "column";
 
     var mainGroup = mainWindow.add("group", undefined, "mainGroup");
