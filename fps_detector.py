@@ -3,6 +3,7 @@
 # Shantu's repo: https://github.com/shantnu/PyEng
 
 import sys
+import csv
 import cv2
 import numpy as np
 import time
@@ -27,12 +28,27 @@ min = 0
 sec = 0
 frame = -1
 
-#make rgb.txt if it doesnt exist and clear it
+startTime = ""
+endTime = ""
+videoPath = ""
+
+#read rgb.txt and take out anything from it
+with open(DEST, "r") as file:
+    csv_reader = csv.reader(file)
+    i = 0
+    for line in csv_reader and i == 0: #only read first line
+        i+=1
+        startTime = line[0]
+        endTime = line[1]
+        videoPath = line[2]
+        #print(line)
+
+
+#clear rgb.txt for writing
 with open(DEST, "w") as file:
     file.write("")
 
 while True:
-
     last_frame = current_frame
     ret, current_frame = video_capture.read()
 
