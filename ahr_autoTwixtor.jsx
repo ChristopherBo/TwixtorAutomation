@@ -342,8 +342,14 @@
         var layer = precomp.layers[1];
         layer.timeRemapEnabled = true;
         
-        // list of all fps changes
-        var splits = splitScene(precomp, layer);
+        if(File.fs != "Windows") {
+            //forced to use extendscript detector
+            alert("Not a Windows computer- falling back to legacy framerate detector!");
+            splits = splitScene(precomp, layer);
+        } else {
+            //use more advanced python detector
+            splits = pythonFPSDetector(precomp, layer, true);
+        }
 
         //set each fps change as a new frame
         if(splits.length > 0) {
@@ -386,7 +392,7 @@
     
         var frameIncrement = 1; //go frame by frame
         var frameRate = Math.floor(1/comp.frameDuration);
-         for(var i = comp.time*frameRate; i < comp.duration*frameRate; i+=frameIncrement) {
+        for(var i = comp.time*frameRate; i < comp.duration*frameRate; i+=frameIncrement) {
     
             // move forward in time
             comp.time += frameIncrement/frameRate;
@@ -409,10 +415,10 @@
             ogG = g;
             ogB = b;
     
-         }
-         splitTimes.shift();
+        }
+        splitTimes.shift();
     
-         //alert(splitTimes);
+        //alert(splitTimes);
     
         rText.remove();
         gText.remove();
@@ -425,8 +431,28 @@
     //python FPS detector.
     //returns a list of frames where the scene changes
     //if sendThreshold = true returns a second list with the corresponding thresholds
-    function pythonFPSDetector(comp, layer, sendThreshold=false) {
+    function pythonFPSDetector(comp, layer, sendThreshold) {
+        //default value
+        if(sendThreshold == undefined) { sendThreshold = false; }
+        
         var splits = [];
+        var thresholds = [];
+
+        //give the python file info on what it's detecting
+        var startTime = layer.inPoint;
+        var endTime = layer.outPoint;
+        //ie: /g/Recording Footage/Tutorials/TwixtorAutomation/Violet Evergarden, Episode 1.mp4
+        writeToRGBFile(startTime + "," + endTime);
+
+        //write the script file
+        var layerPath = layer.source.file.fullName;
+
+        //write a bash file installing dependencies with pip and launching the python file
+        //then wait, poll the rgb file every second
+
+        if(sendThreshold) {
+            return splits, thresholds;
+        }
         return splits;
     }
     
