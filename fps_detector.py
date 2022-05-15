@@ -8,7 +8,7 @@ import cv2
 import numpy as np
 import time
 
-#grab homne directory and then documents
+#grab home directory and then documents
 #specified data dumped into here
 from pathlib import Path
 DEST = str(Path.home()) + "\\Documents\\rgb.txt"
@@ -19,10 +19,9 @@ else:
     filepath = sys.argv[1]
     video_capture = cv2.VideoCapture(filepath)
 
-# Read two frames, last and current, and convert current to gray.
+# Read two frames, last and current
 ret, last_frame = video_capture.read()
 ret, current_frame = video_capture.read()
-#gray = cv2.cvtColor(current_frame, cv2.COLOR_BGR2GRAY) #may want to remove this
 
 min = 0
 sec = 0
@@ -48,14 +47,11 @@ with open(DEST, "r") as file:
             endTime = (int(endTokens[1])*60*clipfps) + (int(endTokens[2])*clipfps) + int(endTokens[3])
         else:
             break
-    
-if(endTime == 0): #couldnt read file
-    startTime = 0
 
 
 #clear rgb.txt for writing
-# with open(DEST, "w") as file:
-#     file.write("")
+with open(DEST, "w") as file:
+    file.write("")
 
 while True:
     last_frame = current_frame
@@ -80,9 +76,7 @@ while True:
     currentTime = smin + ":" + ssec + ":" + sframe
         
     if(startTime <= frametotal <= endTime): 
-        #image processing
-        #gray = cv2.cvtColor(current_frame, cv2.COLOR_BGR2GRAY) #may want to remove this
-        diff = cv2.absdiff(last_frame, current_frame)
+        diff = cv2.absdiff(last_frame, current_frame) #image processing
 
         #write if last frame is different enough from current frame
         if np.mean(diff) > 0.7 and frame != -1:
