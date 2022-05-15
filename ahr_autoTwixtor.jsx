@@ -279,13 +279,17 @@
             layer = precomp.layers(1);
         }
 
-        //get color space of current frame
+        var splits;
 
-        //loop through each frame, get color space until it changes
-        //then determine fps via clip fps/#frames
-
-        // list of all fps changes
-        var splits = splitScene(comp, layer);
+        if(File.fs != "Windows") {
+            //forced to use extendscript detector
+            alert("Not a Windows computer- falling back to legacy framerate detector!");
+            splits = splitScene(comp, layer);
+        } else {
+            //use more advanced python detector
+            splits = pythonFPSDetector(comp, layer, true);
+        }
+        
 
         //fps based on averaging differences of all times
         // var random = genRand(0, splits.length-1, 0);
@@ -350,27 +354,6 @@
         }
 
         return splits.length;
-    }
-
-    //grabs all the names of the given comp and returns them in a list.
-    function getAllCompLayerNames(comp) {
-        var layerNames = [];
-        //start at 1 bc comp.layers starts at 1
-        for(var i=1; i <= comp.layers.length; i++) {
-            layerNames.push(comp.layers[i].name);
-        }
-        return layerNames;
-    }
-
-    //finds a layer in a comp based on it's name
-    function findLayerFromName(comp, layerName) {
-        for(var i=1; i<=comp.layers.length; i++) {
-            if(comp.layers[i].name == layerName.toString()) {
-                return comp.layers[i];
-            }
-        }
-        alert("Error: Could not find layer " + layerName.toString() + "!");
-        return false;
     }
 
     // modified from NTProduction's scene detect script, free online
@@ -438,21 +421,63 @@
         return splitTimes;
         //layer.remove();
     }
+
+    //python FPS detector.
+    //returns a list of frames where the scene changes
+    //if sendThreshold = true returns a second list with the corresponding thresholds
+    function pythonFPSDetector(comp, layer, sendThreshold=false) {
+        var splits = [];
+        return splits;
+    }
     
-    function writeToRGBFile(r, g, b) {
-        var rgbFile = File("~/Documents/rgb.txt");
+    //writes contents to the rgb file.
+    function writeToRGBFile(contents) {
+        var rgbFile = getRGBFile();
         rgbFile.open("w");
-        rgbFile.write(r+"\r"+g+"\r"+b);
+        rgbFile.write(contents);
         rgbFile.close();
     }
     
+    //returns data in the rgb file.
     function readRGBFile() {
-        var rgbFile = File("~/Documents/rgb.txt");
+        var rgbFile = getRGBFile();
         rgbFile.open("r");
         var data = rgbFile.read().split("\n");
         rgbFile.close();
     
         return data;
+    }
+
+    //gets the rgb file
+    function getRGBFile() {
+        var rgbFile = File("~/Documents/rgb.txt");
+        //for some reason ~/ goes to User/username/OneDrive/ instead of User/username if you have onedrive installed
+        //this normally wouldn't be a problem but we need to coordinate with the python file which uses User/username/
+        if(rgbFile.relativeURI.indexOf("OneDrive") != -1) {
+            rgbFile = File("~/../Documents/rgb.txt");
+        }
+        return rgbFile;
+    }
+
+    //grabs all the names of the given comp and returns them in a list.
+    function getAllCompLayerNames(comp) {
+        var layerNames = [];
+        //start at 1 bc comp.layers starts at 1
+        for(var i=1; i <= comp.layers.length; i++) {
+            layerNames.push(comp.layers[i].name);
+        }
+        return layerNames;
+    }
+
+    //finds a layer in a comp based on it's name
+    function findLayerFromName(comp, layerName) {
+        for(var i=1; i<=comp.layers.length; i++) {
+            if(comp.layers[i].name == layerName.toString()) {
+                return comp.layers[i];
+            }
+        }
+        alert("Error: Could not find layer " + layerName.toString() + "!");
+        return false;
     }
 
     //from goodboy ninja: https://www.goodboy.ninja/snippets/generate-a-random-number
