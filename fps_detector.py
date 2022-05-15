@@ -22,14 +22,16 @@ else:
 # Read two frames, last and current, and convert current to gray.
 ret, last_frame = video_capture.read()
 ret, current_frame = video_capture.read()
-gray = cv2.cvtColor(current_frame, cv2.COLOR_BGR2GRAY) #may want to remove this
+#gray = cv2.cvtColor(current_frame, cv2.COLOR_BGR2GRAY) #may want to remove this
 
 min = 0
 sec = 0
 frame = -1
+frametotal = -1
+clipfps = video_capture.get(cv2.CAP_PROP_FPS)
 
-startTime = []
-endTime = []
+startTime = 0
+endTime = 0
 
 #read rgb.txt and take out anything from it
 with open(DEST, "r") as file:
@@ -37,24 +39,23 @@ with open(DEST, "r") as file:
     csv_reader = csv.reader(file)
     i = 0
     for line in csv_reader: 
-        if i == 0 and len(line) == 3: #only read first line
+        if i == 0 and len(line) == 2: #only read first line
             i += 1
             print(line)
             startTokens = line[0].split(":") #[hours, minutes, seconds, frames]
-            startTime = [int(startTokens[1]), int(startTokens[2]), int(startTokens[3])]
+            startTime = (int(startTokens[1])*60*clipfps) + (int(startTokens[2])*clipfps) + int(startTokens[3])
             endTokens = line[1].split(":") #[hours, minutes, seconds, frames]
-            endTime = [int(endTokens[1]), int(endTokens[2]), int(endTokens[3])]
+            endTime = (int(endTokens[1])*60*clipfps) + (int(endTokens[2])*clipfps) + int(endTokens[3])
         else:
             break
     
-if(endTime == []): #couldnt read file
-    startTime = [0, 0, 0]
-    endTime = [0, 0, 0]
+if(endTime == 0): #couldnt read file
+    startTime = 0
 
 
 #clear rgb.txt for writing
-with open(DEST, "w") as file:
-    file.write("")
+# with open(DEST, "w") as file:
+#     file.write("")
 
 while True:
     last_frame = current_frame
@@ -78,22 +79,26 @@ while True:
         
     currentTime = smin + ":" + ssec + ":" + sframe
         
-    if(currentTime >= startTime and currentTime <= endTime): 
+    if(startTime <= frametotal <= endTime): 
         #image processing
-        gray = cv2.cvtColor(current_frame, cv2.COLOR_BGR2GRAY) #may want to remove this
+        #gray = cv2.cvtColor(current_frame, cv2.COLOR_BGR2GRAY) #may want to remove this
         diff = cv2.absdiff(last_frame, current_frame)
-            
+
         #write if last frame is different enough from current frame
         if np.mean(diff) > 0.7 and frame != -1:
             print("Motion of: " + str(round(np.mean(diff), 2)) + " detected at frame " + smin + ":" + ssec + ":" + sframe)
             with open(DEST, "a") as file:
                 file.write(str(round(np.mean(diff), 2)) + "," + currentTime + "\n")
+                
+    # if np.mean(diff) > 0.7 and frame != -1:
+    #     print("Gatekept motion of " + str(round(np.mean(diff), 2)) + ". Min: " + str(startTime) + "<=" + str(frametotal) + "<=" + str(endTime))
 
     #uncomment to show difference matte
     #cv2.imshow("Motion detected", diff)
     #time.sleep(0.1)
     
     #frame/sec/min counter
+    frametotal += 1
     frame += 1
     if frame == 24:
         sec += 1
