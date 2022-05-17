@@ -444,27 +444,20 @@
         //ie: /g/Recording Footage/Tutorials/TwixtorAutomation/Violet Evergarden, Episode 1.mp4
         writeToRGBFile(startTime + "," + endTime);
 
-        //write the script file
+        //for use by the bash script later on
         var layerPath = layer.source.file.fullName;
 
         //need to make sure the bash and python files are in the same directory as this script
         var scriptFile = new File($.fileName); //references this file
         var scriptPath = scriptFile.parent; // leads to C:\Users\test\Documents\ae scripting
         if(scriptPath.getFiles("*.py").length <= 0) {
-            alert("Error: bpm_detection.py needs to exist in the same folder as this script!");
+            alert("Error: fps_detector.py needs to exist in the same folder as this script!");
             return;
         }
 
-        //we should be making this shit in appdata
-        //Folder.userData = ~/AppData/Roaming
-        // var cacheFolder = new Folder(String(Folder.userData) + '/ahr_syncMarkersTempFiles/');
-        // if(!cacheFolder.exists) {
-        //     cacheFolder.create();
-        // }
-        //create the bpm.txt file in ~/AppData/Roaming/ahr_syncMarkersScript/bpm.txt
-        var rgbFile = getRGBFile();
-        if(!rgbFile.exists) {
-            rgbFile = new File(bpmTextFilePath);
+        var fpsFile = getRGBFile();
+        if(!fpsFile.exists) {
+            fpsFile = new File(bpmTextFilePath);
         }
         var myScriptPath = File(app.activeScript);
         //var myScriptName = myScriptPath.fullName; // Leads to /c/Program Files/Adobe/Adobe Illustrator CC 2017/Support Files/Content/Windows/tmp000000001
@@ -474,17 +467,17 @@
             alert("Error: Python FPS Detector only works with Windows. Falling back to Extendscript...");
             return splitScene(comp, layer);
         }
-        var batPath = String(scriptPath.fullName) + "/bpmAnalyzer.sh";
-        var runFile = File(batPath);
-        if (!runFile.exists) {
-            runFile = new File(batPath); // Create the bat file (actually sh file) if not existing
+        var batPath = String(scriptPath.fullName) + "/fps_analyzer.sh";
+        var bashScript = File(batPath);
+        if (!bashScript.exists) {
+            bashScript = new File(batPath); // Create the bat file (actually sh file) if not existing
         }
         //scriptPath.fullName = absolute reference from beginning
-        runFile.lineFeed = "Unix"; //since it's a .sh file need LF instead of CRLF
-        runFile.encoding = "UTF-8";
-        //runFile.lineFeed = "Windows";
-        runFile.open("w") //write and destroy everything existing in the file.
-        var bpmAnalyzer = ["echo ///////////////////////////////\n",
+        //bashScript.lineFeed = "Unix"; 
+        bashScript.encoding = "UTF-8";
+        bashScript.lineFeed = "Windows"; //since it's a .bat file need CRLF instead of LF
+        bashScript.open("w") //write and destroy everything existing in the file. r for read, a for append to existing, e for read&append
+        var bashScriptContents = ["echo ///////////////////////////////\n",
                             "echo Installing required packages...\n",
                             "echo ///////////////////////////////\n",
                             "pip install scipy\n",
@@ -494,55 +487,48 @@
                             "echo ///////////////////////////////\n",
                             "echo Detecting beats...\n",
                             "echo ///////////////////////////////\n",
-                            "python \"" + String(scriptPath.fullName) + "/bpm_detection.py\" --filename \"" + String(scriptPath.fullName) + "/" + String(layerList.selection) + "\" --cache \"" + String(scriptPath.fullName) + "\"\n",
+                            "python \"" + String(scriptPath.fullName) + "/fps_detector.py" + String(layerPath) + "\n",
                             "echo  \n",
                             "echo Finished! This program will close in 5 seconds. You can also close it with Ctrl + C.\n",
                             "timeout 6"];
-        for(var i=0; i <= bpmAnalyzer.length; i++) {
-            runFile.write(bpmAnalyzer[i]);
+        for(var i=0; i <= bashScriptContents.length; i++) {
+            bashScript.write(bashScriptContents[i]);
         }
-        // runFile.open("e"); //edit - read & write
-        // for(var i=0; i <= runFile.length; i++) {
-        //     var line = runFile.readln();
-        //     if(line.split(" ")[0] == "python") {
-        //         runFile.write("./" + String(layerList.selection));
-        //     }
-        // }
-        runFile.close();
-        runFile.execute(); // execute the bat file
+        bashScript.close();
+        bashScript.execute(); // execute the bat file
 
-        //now we need to watch the script folder
-        //because the python file will make a file named bpm_<the actual bpm>.txt
+        //now we need to watch rgb.txt for any changes
         var bpmNotFound = true;
         var filesAmt = scriptPath.getFiles().length;
         var iterations = 0;
         while(bpmNotFound) {
             $.sleep(1000);
             //read and detect if there is a change in bpm.txt
-            rgbFile.open();
-            var line = rgbFile.read();
-            rgbFile.close();
-            if(line != "") {
-                bpmText.text = "The BPM of " + String(layerList.selection) + " is: " + line;
+            var data = readRGBFile();
+            if(data != "") {
+                //parse file
+                
+                //first column = splits
+                //second column = threshold
+
+                //bpmText.text = "The BPM of " + String(layerList.selection) + " is: " + data;
                 break;
             }
             if(iterations > 30) { //30 seconds to get it
-                alert("Error: Could not analyze BPM!");
-                return;
+                alert("Error: Could not analyze FPS of " + layer.name +" with python! Falling back to ExtendScript...");
+                return splitScene(comp, layer);
             }
             iterations++;
         }
+
+        //delete rgb.txt now that we're done with it
         files = scriptPath.getFiles();
-        //delete the file now
         for(var i=1; i <= files.length+1; i++) {
-            if(new RegExp(/bpm.txt$/).test(files[i].name)) {
+            if(new RegExp(/rgb.txt$/).test(files[i].name)) {
                 files[i].remove();
                 return;
             }
         }
-
-        //write a bash file installing dependencies with pip and launching the python file
-        //then wait, poll the rgb file every second
 
         if(sendThreshold) {
             return splits, thresholds;
