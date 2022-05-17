@@ -7,6 +7,7 @@ import csv
 import cv2
 import numpy as np
 import time
+import math
 
 #grab home directory and then documents
 #specified data dumped into here
@@ -32,6 +33,18 @@ clipfps = video_capture.get(cv2.CAP_PROP_FPS)
 startTime = 0
 endTime = 0
 
+#make sure rgb.txt exists first- if not leave
+try:
+    with open(DEST, "r") as file:
+        i=0
+except FileNotFoundError:
+    print("ERROR: rgb.txt was not created! Quitting...")
+    video_capture.release()
+    cv2.destroyAllWindows()
+    exit()
+
+
+
 #read rgb.txt and take out anything from it
 with open(DEST, "r") as file:
     #csv reader makes each line a list of strings + strips line of extra whitespaces/line returns
@@ -41,10 +54,12 @@ with open(DEST, "r") as file:
         if i == 0 and len(line) == 2: #only read first line
             i += 1
             print(line)
-            startTokens = line[0].split(":") #[hours, minutes, seconds, frames]
-            startTime = (int(startTokens[1])*60*clipfps) + (int(startTokens[2])*clipfps) + int(startTokens[3])
-            endTokens = line[1].split(":") #[hours, minutes, seconds, frames]
-            endTime = (int(endTokens[1])*60*clipfps) + (int(endTokens[2])*clipfps) + int(endTokens[3])
+            #convert start and end times to hhmmssff
+            startRawTime = float(line[0])
+            startTime = int(startRawTime) + ((startRawTime - int(startRawTime))*clipfps)
+            endRawTime = float(line[1])
+            endTime = int(endRawTime) + ((endRawTime - int(endRawTime))*clipfps)
+            print("Start time: " + str(startTime) + "\t End time: " + str(endTime))
         else:
             break
 
@@ -84,8 +99,8 @@ while True:
             with open(DEST, "a") as file:
                 file.write(str(round(np.mean(diff), 2)) + "," + currentTime + "\n")
                 
-    # if np.mean(diff) > 0.7 and frame != -1:
-    #     print("Gatekept motion of " + str(round(np.mean(diff), 2)) + ". Min: " + str(startTime) + "<=" + str(frametotal) + "<=" + str(endTime))
+    if np.mean(diff) > 0.7 and frame != -1:
+        print("Gatekept motion of " + str(round(np.mean(diff), 2)) + ". Min: " + str(startTime) + "<=" + str(frametotal) + "<=" + str(endTime))
 
     #uncomment to show difference matte
     #cv2.imshow("Motion detected", diff)
