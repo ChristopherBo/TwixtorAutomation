@@ -467,7 +467,7 @@
             alert("Error: Python FPS Detector only works with Windows. Falling back to Extendscript...");
             return splitScene(comp, layer);
         }
-        var batPath = String(scriptPath.fullName) + "/fps_analyzer.sh";
+        var batPath = String(scriptPath.fullName) + "/fps_analyzer.bat";
         var bashScript = File(batPath);
         if (!bashScript.exists) {
             bashScript = new File(batPath); // Create the bat file (actually sh file) if not existing
@@ -477,7 +477,8 @@
         bashScript.encoding = "UTF-8";
         bashScript.lineFeed = "Windows"; //since it's a .bat file need CRLF instead of LF
         bashScript.open("w") //write and destroy everything existing in the file. r for read, a for append to existing, e for read&append
-        var bashScriptContents = ["echo ///////////////////////////////\n",
+        var bashScriptContents = ["@echo off\n", 
+                            "echo ///////////////////////////////\n",
                             "echo Installing required packages...\n",
                             "echo ///////////////////////////////\n",
                             "pip install scipy\n",
@@ -487,10 +488,10 @@
                             "echo ///////////////////////////////\n",
                             "echo Detecting beats...\n",
                             "echo ///////////////////////////////\n",
-                            "python \"" + String(scriptPath.fullName) + "/fps_detector.py" + String(layerPath) + "\n",
+                            "python \"" + String(scriptPath.fsName) + "\\fps_detector.py\" \"" + String(layerPath) + "\"\n",
                             "echo  \n",
                             "echo Finished! This program will close in 5 seconds. You can also close it with Ctrl + C.\n",
-                            "timeout 6"];
+                            "timeout 6\n"];
         for(var i=0; i <= bashScriptContents.length; i++) {
             bashScript.write(bashScriptContents[i]);
         }
@@ -505,9 +506,14 @@
             $.sleep(1000);
             //read and detect if there is a change in bpm.txt
             var data = readRGBFile();
-            if(data != "") {
+            if(data != startTime + "," + endTime) {
                 //parse file
-                
+                lines = data.split("\n");
+                for(var i=0; i <= lines.length; i++) {
+                    tokens = lines.split(",");
+                    splits.push(tokens[0]);
+                    thresholds.push(tokens[1]);
+                }
                 //first column = splits
                 //second column = threshold
 
