@@ -59,7 +59,7 @@ with open(DEST, "r") as file:
             startTime = int(startRawTime*clipfps)
             endRawTime = float(line[1])
             endTime = int(endRawTime*clipfps) - startTime
-            print("Start time: " + str(startTime) + "\t End time: " + str(endTime))
+            print("Start time: " + str(startTime) + "\t End time: " + str(endTime + startTime))
             video_capture.set(1, startTime-1)
         else:
             break
@@ -92,7 +92,7 @@ while True:
         
     currentTime = smin + ":" + ssec + ":" + sframe
       
-    if(frametotal <= endTime): 
+    if(frametotal < endTime): 
         diff = cv2.absdiff(last_frame, current_frame) #image processing  
 
         #write if last frame is different enough from current frame
