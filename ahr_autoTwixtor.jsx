@@ -508,11 +508,14 @@
             if(data != startTime + "," + endTime && data != "") {
                 $.sleep(1000);
                 //parse file
-                lines = data.split("\n");
-                for(var i=0; i <= lines.length; i++) {
-                    tokens = lines.split(",");
-                    splits.push(tokens[0]);
-                    thresholds.push(tokens[1]);
+                alert("Data recieved!");
+                data = readRGBFile();
+                for(var i=0; i <= data.length-1; i++) {
+                    tokens = data[i].split(",");
+                    if(tokens.length == 2) {
+                        splits.push(tokens[0]);
+                        thresholds.push(tokens[1]);
+                    }
                 }
                 //first column = splits
                 //second column = threshold
@@ -528,13 +531,14 @@
         }
 
         //delete rgb.txt now that we're done with it
-        files = scriptPath.getFiles();
-        for(var i=1; i <= files.length+1; i++) {
-            if(new RegExp(/rgb.txt$/).test(files[i].name)) {
-                files[i].remove();
-                return;
-            }
-        }
+        // files = scriptPath.getFiles();
+        // for(var i=1; i <= files.length-1; i++) {
+        //     if(new RegExp(/rgb.txt$/).test(files[i].name)) {
+        //         files[i].remove();
+        //         return;
+        //     }
+        // }
+        fpsFile.remove();
 
         if(sendThreshold) {
             return splits, thresholds;
