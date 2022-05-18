@@ -38,7 +38,6 @@
 
 
 //GLOBALS/PREFERENCES
-//If true, the packages
 (function ahr_autoTwixtor() {
 
     var ahr_autoTwixtor = new Object();	// Store globals in an object
@@ -461,8 +460,8 @@
         //need to make sure the bash and python files are in the same directory as this script
         var scriptFile = new File($.fileName); //references this file
         var scriptPath = scriptFile.parent; // leads to C:\Users\test\Documents\ae scripting
-        if(scriptPath.getFiles("*.py").length <= 0) {
-            alert("Error: fps_detector.py needs to exist in the same folder as this script!");
+        if(scriptPath.getFiles("*.exe").length <= 0) {
+            alert("Error: fps_detector.exe needs to exist in the same folder as this script!");
             return;
         }
 
