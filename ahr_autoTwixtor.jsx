@@ -439,13 +439,13 @@
         var thresholds = [];
 
         //give the python file info on what it's detecting
-        var startTime = layer.inPoint;
+        var startTime = layer.inPoint + Math.abs(layer.startTime);
         var endTime = layer.outPoint;
         //ie: /g/Recording Footage/Tutorials/TwixtorAutomation/Violet Evergarden, Episode 1.mp4
         writeToRGBFile(startTime + "," + endTime);
 
         //for use by the bash script later on
-        var layerPath = layer.source.file.fullName;
+        var layerPath = layer.source.file.fsName;
 
         //need to make sure the bash and python files are in the same directory as this script
         var scriptFile = new File($.fileName); //references this file
@@ -486,10 +486,9 @@
                             "pip install pywavelets\n",
                             "pip install matplotlib\n",
                             "echo ///////////////////////////////\n",
-                            "echo Detecting beats...\n",
+                            "echo Detecting fps...\n",
                             "echo ///////////////////////////////\n",
                             "python \"" + String(scriptPath.fsName) + "\\fps_detector.py\" \"" + String(layerPath) + "\"\n",
-                            "echo  \n",
                             "echo Finished! This program will close in 5 seconds. You can also close it with Ctrl + C.\n",
                             "timeout 6\n"];
         for(var i=0; i <= bashScriptContents.length; i++) {
@@ -499,14 +498,15 @@
         bashScript.execute(); // execute the bat file
 
         //now we need to watch rgb.txt for any changes
-        var bpmNotFound = true;
+        var dataNotFound = true;
         var filesAmt = scriptPath.getFiles().length;
         var iterations = 0;
-        while(bpmNotFound) {
+        while(dataNotFound) {
             $.sleep(1000);
-            //read and detect if there is a change in bpm.txt
+            //read and detect if data has been dumped, then wait another second for all the data
             var data = readRGBFile();
-            if(data != startTime + "," + endTime) {
+            if(data != startTime + "," + endTime && data != "") {
+                $.sleep(1000);
                 //parse file
                 lines = data.split("\n");
                 for(var i=0; i <= lines.length; i++) {
