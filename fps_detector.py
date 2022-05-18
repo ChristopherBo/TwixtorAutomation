@@ -54,12 +54,13 @@ with open(DEST, "r") as file:
         if i == 0 and len(line) == 2: #only read first line
             i += 1
             print(line)
-            #convert start and end times to hhmmssff
+            #convert start and end times to frame numbers from seconds
             startRawTime = float(line[0])
-            startTime = int(startRawTime) + ((startRawTime - int(startRawTime))*clipfps)
+            startTime = int(startRawTime*clipfps)
             endRawTime = float(line[1])
-            endTime = int(endRawTime) + ((endRawTime - int(endRawTime))*clipfps)
+            endTime = int(endRawTime*clipfps) - startTime
             print("Start time: " + str(startTime) + "\t End time: " + str(endTime))
+            video_capture.set(1, startTime-1)
         else:
             break
 
@@ -72,7 +73,8 @@ while True:
     last_frame = current_frame
     ret, current_frame = video_capture.read()
 
-    if not ret:
+    if not ret or frametotal > endTime:
+        print("Frametotal of " + str(frametotal) + " exceeds endTime of " + str(endTime) + ". Quitting...")
         break
     
     #string conversions- if frame/sec/min 9 or less add a prefix 0 for consistency
@@ -89,18 +91,18 @@ while True:
         smin = "0" + str(min)
         
     currentTime = smin + ":" + ssec + ":" + sframe
-        
-    if(startTime <= frametotal <= endTime): 
-        diff = cv2.absdiff(last_frame, current_frame) #image processing
+      
+    if(frametotal <= endTime): 
+        diff = cv2.absdiff(last_frame, current_frame) #image processing  
 
         #write if last frame is different enough from current frame
         if np.mean(diff) > 0.7 and frame != -1:
-            print("Motion of: " + str(round(np.mean(diff), 2)) + " detected at frame " + smin + ":" + ssec + ":" + sframe)
+            print("Motion of: " + str(round(np.mean(diff), 2)) + " detected at frame " + smin + ":" + ssec + ":" + sframe + "\t total frame " + str(round(video_capture.get(1), 0)))
             with open(DEST, "a") as file:
                 file.write(str(round(np.mean(diff), 2)) + "," + currentTime + "\n")
                 
-    if np.mean(diff) > 0.7 and frame != -1:
-        print("Gatekept motion of " + str(round(np.mean(diff), 2)) + ". Min: " + str(startTime) + "<=" + str(frametotal) + "<=" + str(endTime))
+    # if np.mean(diff) > 0.7 and frame != -1:
+    #     print("Gatekept motion of " + str(round(np.mean(diff), 2)) + ". Min: " + str(startTime) + "<=" + str(frametotal) + "<=" + str(endTime))
 
     #uncomment to show difference matte
     #cv2.imshow("Motion detected", diff)
@@ -108,6 +110,7 @@ while True:
     
     #frame/sec/min counter
     frametotal += 1
+    #print("Frame number " + str(round(video_capture.get(1), 2)))
     frame += 1
     if frame == 24:
         sec += 1
