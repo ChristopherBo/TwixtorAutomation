@@ -6,6 +6,10 @@
 // Find more of these scripts on my channel https://www.youtube.com/c/AHRevolvers
 //
 //Changelog:
+// - figure out how to get a layer's source path
+// - figure out scene detection using python
+// - exec the python file via bash script
+// - screw around with the extendscript detection system
 // - added a gui
 // - check if user has twixtor installed
 // - take in files
@@ -15,11 +19,12 @@
 // - 3c works
 //
 //Todo:
-// - screw around with the extendscript detection system
-// - figure out scene detection using python
-// - figure out how to get python to interact with ae DIRECTLY
-// - figure out how to get a layer's source path
 // - progress bar
+// - make it dockable
+// - add an advanced options window connected to a preferences.txt file
+//      - make it not close on use
+//      - changeable default fps from 23.976 to whatever user wants
+// - install dependencies once in a different bash script for faster analysis
 //
 //Legal stuff:
 // Permission to use, copy, modify, and/or distribute this software for any
@@ -224,7 +229,7 @@
             if(constantFPS.value == true) { //3a
                 twixConstant(precomp, 0);
             } else if(cutFPS.value == true) { //3b
-                
+                //need to do this sometime
             } else if(variableFPS.value == true) { //3c
                 var keyframes = twixVariable(precomp);
                 //todo: change comp duration and time remap keyframes accordingly
@@ -480,12 +485,13 @@
         bashScript.open("w") //write and destroy everything existing in the file. r for read, a for append to existing, e for read&append
         var bashScriptContents = ["@echo off\n", 
                             "echo ///////////////////////////////\n",
-                            "echo Installing required packages...\n",
+                            "echo Completing first time installation of packages...\n",
                             "echo ///////////////////////////////\n",
                             "pip install scipy\n",
                             "pip install numpy\n",
                             "pip install pywavelets\n",
                             "pip install matplotlib\n",
+                            "pip install opencv-python\n",
                             "echo ///////////////////////////////\n",
                             "echo Detecting fps...\n",
                             "echo ///////////////////////////////\n",
@@ -597,30 +603,14 @@
         return false;
     }
 
-    //from goodboy ninja: https://www.goodboy.ninja/snippets/generate-a-random-number
-    function genRand(min, max, decimalPlaces) {
-        // you could add some error checking to make sure all arguments exist
-        
-        var result = Math.random() * (max - min) + min;
-        if (decimalPlaces > 0) {
-          var power = Math.pow(10, decimalPlaces);
-          var result = Math.floor(result * power) / power;
-        }
-        if (decimalPlaces === 0) {
-          result = Math.round(result);
-        }
-        return result;
-      }
-
-      //matches a name to a layer in a given comp
-      //written by yours truly
-      function matchNameToLayer(name, comp) {
+    //matches a name to a layer in a given comp
+    function matchNameToLayer(name, comp) {
         for(var i=1; i < comp.layers.length; i++) {
             if(comp.layer(i).name == name) {
                 return comp.layer(i);
             }
         }
         return null;
-      }
+    }
 
 })();
