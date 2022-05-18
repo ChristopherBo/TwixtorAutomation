@@ -1,4 +1,4 @@
-//ahr_autoTwixtorv0.4.jsx
+//ahr_autoTwixtor.jsx Version 0.5
 // Copyright (c) 2022 AHRevolvers. All rights reserved.
 //
 // This script will automatically setup twixtor for a user based on this article,
@@ -33,7 +33,7 @@
 
     var ahr_autoTwixtor = new Object();	// Store globals in an object
 	ahr_autoTwixtor.scriptName = "ahr_autoTwixtor";
-	ahr_autoTwixtor.scriptTitle = ahr_autoTwixtor.scriptName + "v0.4";
+	ahr_autoTwixtor.scriptTitle = ahr_autoTwixtor.scriptName + "v0.5";
 	
 	// Check that a project exists
 	if (app.project === null) {
@@ -64,7 +64,7 @@
     //////////////////////////////////////////
     //MAIN UI
     //////////////////////////////////////////
-    var mainWindow = new Window("palette", "AHRevolver's Auto Twixtor Script v0.4", undefined);
+    var mainWindow = new Window("palette", "AHRevolver's Auto Twixtor Script v0.5", undefined);
     mainWindow.orientation = "column";
 
     var mainGroup = mainWindow.add("group", undefined, "mainGroup");
@@ -287,7 +287,7 @@
             splits = splitScene(comp, layer);
         } else {
             //use more advanced python detector
-            splits = pythonFPSDetector(comp, layer, true);
+            splits = pythonFPSDetector(comp, layer, false);
         }
         
 
@@ -509,7 +509,7 @@
             if(data != startTime + "," + endTime && data != "") {
                 $.sleep(1000);
                 //parse file
-                alert("Data recieved!");
+                //alert("Data recieved!");
                 data = readRGBFile();
                 for(var i=0; i <= data.length-1; i++) {
                     tokens = data[i].split(",");
