@@ -34,6 +34,11 @@
 // This script is provided "as is," without warranty of any kind, expressed
 // or implied. In no event shall the author be held liable for any damages
 // arising in any way from the use of this script.
+//
+
+
+//GLOBALS/PREFERENCES
+//If true, the packages
 (function ahr_autoTwixtor() {
 
     var ahr_autoTwixtor = new Object();	// Store globals in an object
@@ -485,17 +490,9 @@
         bashScript.open("w") //write and destroy everything existing in the file. r for read, a for append to existing, e for read&append
         var bashScriptContents = ["@echo off\n", 
                             "echo ///////////////////////////////\n",
-                            "echo Completing first time installation of packages...\n",
-                            "echo ///////////////////////////////\n",
-                            "pip install scipy\n",
-                            "pip install numpy\n",
-                            "pip install pywavelets\n",
-                            "pip install matplotlib\n",
-                            "pip install opencv-python\n",
-                            "echo ///////////////////////////////\n",
                             "echo Detecting fps...\n",
                             "echo ///////////////////////////////\n",
-                            "python \"" + String(scriptPath.fsName) + "\\fps_detector.py\" \"" + String(layerPath) + "\"\n",
+                            "\"" + String(scriptPath.fsName) + "\\fps_detector.exe\" \"" + String(layerPath) + "\"\n",
                             "echo Finished! This program will close in 5 seconds. You can also close it with Ctrl + C.\n",
                             "timeout 6\n"];
         for(var i=0; i <= bashScriptContents.length; i++) {
