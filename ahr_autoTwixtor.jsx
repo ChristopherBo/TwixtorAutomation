@@ -341,6 +341,7 @@
     function twixVariable(precomp) {
         var layer = precomp.layers[1];
         layer.timeRemapEnabled = true;
+        var splits;
         
         if(File.fs != "Windows") {
             //forced to use extendscript detector
@@ -348,13 +349,13 @@
             splits = splitScene(precomp, layer);
         } else {
             //use more advanced python detector
-            splits = pythonFPSDetector(precomp, layer, true);
+            splits = pythonFPSDetector(precomp, layer, false);
         }
 
         //set each fps change as a new frame
         if(splits.length > 0) {
             for(var i=0; i < splits.length-1; i++) {
-                layer.timeRemap.setValueAtTime(i/precomp.frameRate, splits[i] + Math.abs(layer.startTime));
+                layer.timeRemap.setValueAtTime(i/precomp.frameRate, parseFloat(splits[i]) + Math.abs(layer.startTime));
             }
             //shorten precomp duration to fps
         }
