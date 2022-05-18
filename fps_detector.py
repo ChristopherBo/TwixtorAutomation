@@ -64,7 +64,6 @@ with open(DEST, "r") as file:
         else:
             break
 
-
 #clear rgb.txt for writing
 with open(DEST, "w") as file:
     file.write("")
@@ -90,7 +89,7 @@ while True:
     if min < 10:
         smin = "0" + str(min)
         
-    currentTime = smin + ":" + ssec + ":" + sframe
+    currentTime = sec + (frame/clipfps)
       
     if(frametotal < endTime): 
         diff = cv2.absdiff(last_frame, current_frame) #image processing  
@@ -99,7 +98,7 @@ while True:
         if np.mean(diff) > 0.7 and frame != -1:
             print("Motion of: " + str(round(np.mean(diff), 2)) + " detected at frame " + smin + ":" + ssec + ":" + sframe + "\t total frame " + str(round(video_capture.get(1), 0)))
             with open(DEST, "a") as file:
-                file.write(str(round(np.mean(diff), 2)) + "," + currentTime + "\n")
+                file.write(str(currentTime) + "," + str(round(np.mean(diff), 2)) + "\n")
                 
     # if np.mean(diff) > 0.7 and frame != -1:
     #     print("Gatekept motion of " + str(round(np.mean(diff), 2)) + ". Min: " + str(startTime) + "<=" + str(frametotal) + "<=" + str(endTime))
@@ -112,12 +111,11 @@ while True:
     frametotal += 1
     #print("Frame number " + str(round(video_capture.get(1), 2)))
     frame += 1
-    if frame == 24:
+    if frame % 24 == 0 and frame != 0:
         sec += 1
         frame = 0
-    if sec == 60:
+    if sec % 60 == 0 and sec != 0:
         min += 1
-        sec = 0
 
     if cv2.waitKey(1) & 0xFF == ord('q'):
         break
