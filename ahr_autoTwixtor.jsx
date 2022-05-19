@@ -38,7 +38,7 @@
 
 
 //GLOBALS/PREFERENCES
-(function ahr_autoTwixtor() {
+(function ahr_autoTwixtor(thisObj) {
 
     var ahr_autoTwixtor = new Object();	// Store globals in an object
 	ahr_autoTwixtor.scriptName = "ahr_autoTwixtor";
@@ -69,184 +69,200 @@
         alert("Twixtor is not installed!");
         return false;
     }
-
+    
     //////////////////////////////////////////
     //MAIN UI
     //////////////////////////////////////////
-    var mainWindow = new Window("palette", "AHRevolver's Auto Twixtor Script v0.5", undefined);
-    mainWindow.orientation = "column";
+    scriptBuildUI(thisObj)
+    function scriptBuildUI(thisObj) {
+        var win = (thisObj instanceof Panel) ? thisObj : new Window('palette', "AHRevolver's Auto Twixtor Script v0.5", undefined, {
+            resizeable: true
+        });
+        win.spacing = 0;
+        // var mainWindow = new Window("palette", "AHRevolver's Auto Twixtor Script v0.5", undefined);
+        win.orientation = "column";
 
-    var mainGroup = mainWindow.add("group", undefined, "mainGroup");
-    mainGroup.orientation = "column";
+        var mainGroup = win.add("group", undefined, "mainGroup");
+        mainGroup.orientation = "column";
 
-    //help window
-    var helpWindow = new Window("dialog", "What is this thing?", undefined);
-    var helpText = helpWindow.add("group"); 
-    helpText.preferredSize.width = 500; 
-    helpText.orientation = "column"; 
-    helpText.alignChildren = ["left","center"]; 
-    helpText.spacing = 0; 
+        //help window
+        var helpWindow = new Window("dialog", "What is this thing?", undefined);
+        var helpText = helpWindow.add("group"); 
+        helpText.preferredSize.width = 500; 
+        helpText.orientation = "column"; 
+        helpText.alignChildren = ["left","center"]; 
+        helpText.spacing = 0; 
 
-    helpText.add("statictext", undefined, "This script was written in guidance with lolligerjoj's twixtor article, which you", {name: "helpText"}); 
-    helpText.add("statictext", undefined, "can find here:https://lolligerjoj.wordpress.com/2016/10/22/twixtor-on-anime-", {name: "helpText"}); 
-    helpText.add("statictext", undefined, "footage-and-ae-workflow-using-twixtor/ ", {name: "helpText"}); 
-    helpText.add("statictext", undefined, "", {name: "helpText"}); 
-    helpText.add("statictext", undefined, "In and Out Layers determine what range of layers to apply to. Selecting the", {name: "helpText"}); 
-    helpText.add("statictext", undefined, "same in and out layer only selects 1 layer, while selecting layers 6 and 10 for in", {name: "helpText"}); 
-    helpText.add("statictext", undefined, "and out selects layers 6, 7, 8, 9, and 10. It does not matter what order you select", {name: "helpText"}); 
-    helpText.add("statictext", undefined, "them in. ", {name: "helpText"}); 
-    helpText.add("statictext", undefined, "", {name: "helpText"}); 
-    helpText.add("statictext", undefined, "3a, 3b, and 3c represent different methods to interpolate using Twixtor:", {name: "helpText"}); 
-    helpText.add("statictext", undefined, " - 3a: Constant framerate, linear interpolation.", {name: "helpText"}); 
-    helpText.add("statictext", undefined, " - 3b: Split the clip where the framerate changes and treat each part like 3a.", {name: "helpText"}); 
-    helpText.add("statictext", undefined, " - 3c: Precomp the clip, add time remapping, and force every frame to be a new", {name: "helpText"}); 
-    helpText.add("statictext", undefined, "frame. ", {name: "helpText"}); 
-    helpText.add("statictext", undefined, "", {name: "helpText"}); 
-    helpText.add("statictext", undefined, "Option 3b, 3c, and Scene Detection both use an external Python file to deal with", {name: "helpText"}); 
-    helpText.add("statictext", undefined, "image detection and are still experimental. ", {name: "helpText"}); 
-    helpText.add("statictext", undefined, "", {name: "helpText"}); 
-    helpText.preferredSize.width = 400;
+        helpText.add("statictext", undefined, "This script was written in guidance with lolligerjoj's twixtor article, which you", {name: "helpText"}); 
+        helpText.add("statictext", undefined, "can find here:https://lolligerjoj.wordpress.com/2016/10/22/twixtor-on-anime-", {name: "helpText"}); 
+        helpText.add("statictext", undefined, "footage-and-ae-workflow-using-twixtor/ ", {name: "helpText"}); 
+        helpText.add("statictext", undefined, "", {name: "helpText"}); 
+        helpText.add("statictext", undefined, "In and Out Layers determine what range of layers to apply to. Selecting the", {name: "helpText"}); 
+        helpText.add("statictext", undefined, "same in and out layer only selects 1 layer, while selecting layers 6 and 10 for in", {name: "helpText"}); 
+        helpText.add("statictext", undefined, "and out selects layers 6, 7, 8, 9, and 10. It does not matter what order you select", {name: "helpText"}); 
+        helpText.add("statictext", undefined, "them in. ", {name: "helpText"}); 
+        helpText.add("statictext", undefined, "", {name: "helpText"}); 
+        helpText.add("statictext", undefined, "3a, 3b, and 3c represent different methods to interpolate using Twixtor:", {name: "helpText"}); 
+        helpText.add("statictext", undefined, " - 3a: Constant framerate, linear interpolation.", {name: "helpText"}); 
+        helpText.add("statictext", undefined, " - 3b: Split the clip where the framerate changes and treat each part like 3a.", {name: "helpText"}); 
+        helpText.add("statictext", undefined, " - 3c: Precomp the clip, add time remapping, and force every frame to be a new", {name: "helpText"}); 
+        helpText.add("statictext", undefined, "frame. ", {name: "helpText"}); 
+        helpText.add("statictext", undefined, "", {name: "helpText"}); 
+        helpText.add("statictext", undefined, "Option 3b, 3c, and Scene Detection all use an external Python file to deal with", {name: "helpText"}); 
+        helpText.add("statictext", undefined, "image detection and are still experimental. ", {name: "helpText"}); 
+        helpText.add("statictext", undefined, "", {name: "helpText"}); 
+        helpText.preferredSize.width = 400;
 
-    var helpButton = mainGroup.add("button", undefined, "?");
-    helpButton.onClick = function() {
-        helpWindow.center();
-        helpWindow.show();
-    }
-
-    var groupOne = mainGroup.add("group");
-    groupOne.orientation = "column";
-
-    //layer range- from layer x to layer y
-    //start and end layer can be the same to select 1 layer
-    var layerPanel = groupOne.add("panel", undefined, "Choose the layer(s) to detect audio from.");
-    var inGroup = layerPanel.add("group", undefined, "inGroup");
-    inGroup.orientation = "row";
-    var inText = inGroup.add("statictext", undefined, "In Layer:");
-    var inLayer = inGroup.add("dropdownlist", undefined, getAllCompLayerNames(app.project.activeItem));
-    inLayer.size = [250, 25];
-    inLayer.selection = 0;
-
-    //out layer selection
-    var outGroup = layerPanel.add("group", undefined, "outGroup");
-    outGroup.orientation = "row";
-    var outText = outGroup.add("statictext", undefined, "Out Layer:");
-    var outLayer = outGroup.add("dropdownlist", undefined, getAllCompLayerNames(app.project.activeItem));
-    outLayer.size = [250, 25];
-    outLayer.selection = 0;
-
-    //framerate options
-    var groupOptions = mainGroup.add("group", undefined, "groupOptions");
-    groupOptions.orientation = "column";
-    var groupPanel = groupOptions.add("panel", undefined, "Twixtor Settings");
-    // archived manual fps input, radio buttons dont work with cleaner design of it 
-    // var inputFPSGroup = groupPanel.add("group", undefined, "inputFPSGroup");
-    // inputFPSGroup.orientation = "row";
-    // var inputFPS = inputFPSGroup.add("edittext", undefined, "");
-    // inputFPS.preferredSize.width = 45;
-    // inputFPS.preferredSize.height = 17;
-    var constantFPS = groupPanel.add("radiobutton", undefined, "Constant Framerate (3a):");
-    constantFPS.value = true;
-    var cutFPS = groupPanel.add("radiobutton", undefined, "Framerate occasionally changes (3b)");
-    cutFPS.value = false;
-    var variableFPS = groupPanel.add("radiobutton", undefined, "Framerate changes often (3c)");
-    variableFPS.value = false;
-    var detectFPS = groupPanel.add("checkbox", undefined, "Detect framerate(s) of clips (experimental)");
-    detectFPS.value = true;
-    var threeBText = groupPanel.add("statictext", undefined, "Note: 3b will auto-detect framerate.");
-
-    //experimental features and misc buttons
-    var autoCut = groupOptions.add("checkbox", undefined, "Scene Detection (multiple shots in each layer)");
-    autoCut.value = false;
-    var debug = groupOptions.add("checkbox", undefined, "Debug Program");
-    debug.value = false;
-    var setupButton = mainWindow.add("button", undefined, "Go!");
-
-    mainWindow.center();
-    mainWindow.show();
-
-    setupButton.onClick = function() {
-        mainWindow.close();
-
-        app.beginUndoGroup("Auto Twixtor Script");
-
-        //grab each layer and put them in a list
-        var layers = [];
-        var comp = app.project.activeItem;
-        var firstLayer = findLayerFromName(comp, inLayer.selection);
-        var lastLayer = findLayerFromName(comp, outLayer.selection);
-
-        //if firstlayer's index is larger than lastlayer's swap what they are
-        if(firstLayer.index > lastLayer.index) {
-            firstLayer, lastLayer = lastLayer, firstLayer;
+        var helpButton = mainGroup.add("button", undefined, "?");
+        helpButton.onClick = function() {
+            helpWindow.center();
+            helpWindow.show();
         }
 
-        //base case just add the 1 layer
-        if(firstLayer.index == lastLayer.index) {
-            layers = [firstLayer];
-        } else {
-            //iterate through indexes and add list items
-            for(var i=firstLayer.index; i <= lastLayer.index; i++) {
-                layers.push(comp.layer(i));
+        var groupOne = mainGroup.add("group");
+        groupOne.orientation = "column";
+
+        //layer range- from layer x to layer y
+        //start and end layer can be the same to select 1 layer
+        var layerPanel = groupOne.add("panel", undefined, "Choose the layer(s) to detect audio from.");
+        var inGroup = layerPanel.add("group", undefined, "inGroup");
+        inGroup.orientation = "row";
+        var inText = inGroup.add("statictext", undefined, "In Layer:");
+        var inLayer = inGroup.add("dropdownlist", undefined, getAllCompLayerNames(app.project.activeItem));
+        inLayer.size = [250, 25];
+        inLayer.selection = 0;
+
+        //out layer selection
+        var outGroup = layerPanel.add("group", undefined, "outGroup");
+        outGroup.orientation = "row";
+        var outText = outGroup.add("statictext", undefined, "Out Layer:");
+        var outLayer = outGroup.add("dropdownlist", undefined, getAllCompLayerNames(app.project.activeItem));
+        outLayer.size = [250, 25];
+        outLayer.selection = 0;
+
+        //framerate options
+        var groupOptions = mainGroup.add("group", undefined, "groupOptions");
+        groupOptions.orientation = "column";
+        var groupPanel = groupOptions.add("panel", undefined, "Twixtor Settings");
+        // archived manual fps input, radio buttons dont work with cleaner design of it 
+        // var inputFPSGroup = groupPanel.add("group", undefined, "inputFPSGroup");
+        // inputFPSGroup.orientation = "row";
+        // var inputFPS = inputFPSGroup.add("edittext", undefined, "");
+        // inputFPS.preferredSize.width = 45;
+        // inputFPS.preferredSize.height = 17;
+        var constantFPS = groupPanel.add("radiobutton", undefined, "Constant Framerate (3a):");
+        constantFPS.value = true;
+        var cutFPS = groupPanel.add("radiobutton", undefined, "Framerate occasionally changes (3b)");
+        cutFPS.value = false;
+        var variableFPS = groupPanel.add("radiobutton", undefined, "Framerate changes often (3c)");
+        variableFPS.value = false;
+        var detectFPS = groupPanel.add("checkbox", undefined, "Detect framerate(s) of clips (experimental)");
+        detectFPS.value = true;
+        var threeBText = groupPanel.add("statictext", undefined, "Note: 3b will auto-detect framerate.");
+
+        //experimental features and misc buttons
+        var autoCut = groupOptions.add("checkbox", undefined, "Scene Detection (multiple shots in each layer)");
+        autoCut.value = false;
+        var debug = groupOptions.add("checkbox", undefined, "Debug Program");
+        debug.value = false;
+        var setupButton = win.add("button", undefined, "Go!");
+
+
+        // mainWindow.center();
+        // mainWindow.show();
+
+        setupButton.onClick = function() {
+            win.close();
+
+            app.beginUndoGroup("Auto Twixtor Script");
+
+            //grab each layer and put them in a list
+            var layers = [];
+            var comp = app.project.activeItem;
+            var firstLayer = findLayerFromName(comp, inLayer.selection);
+            var lastLayer = findLayerFromName(comp, outLayer.selection);
+
+            //if firstlayer's index is larger than lastlayer's swap what they are
+            if(firstLayer.index > lastLayer.index) {
+                firstLayer, lastLayer = lastLayer, firstLayer;
             }
-        }
 
-        //if there is scene detection, detect and cut
-        if(autoCut.value == true) {
-            //scene detection stuff here
-            //probably python?
-        }
-
-        //precomp range of layers
-        var twixFolder = app.project.items.addFolder("Twixtor Precomps");
-        for(var i=0; i < layers.length; i++) {
-            var layerIndex = layers[i].index;
-            var precomp = comp.layers.precompose([layers[i].index], "twix_"+ layers[i].name, false);
-            var precompLayer = comp.layers[layerIndex];
-            //precomp fits the same area and same duration as original
-            // precomp.displayStartTime = precompLayer.inPoint - precompLayer.startTime;
-            //the next 5 lines are mythical and are not to be changed under any circumstances
-            precomp.duration = precompLayer.outPoint - precompLayer.startTime;
-            precomp.layers[1].outPoint = precompLayer.outPoint - precompLayer.startTime;
-            precomp.layers[1].inPoint = precompLayer.inPoint - precompLayer.startTime;
-            precomp.layers[1].startTime = -precompLayer.inPoint + precompLayer.startTime;
-            precomp.duration = precompLayer.outPoint - precompLayer.inPoint;
-            precomp.parentFolder = twixFolder;
-
-            //enable time remapping on each clip
-            precompLayer.timeRemapEnabled = true;
-
-            //add points to in and out
-            //setValueAtTime(old time, new time);
-            precompLayer.timeRemap.setValueAtTime(precompLayer.inPoint, precompLayer.inPoint - precompLayer.inPoint);
-            precompLayer.timeRemap.setValueAtTime(precompLayer.outPoint - (1/comp.frameRate), (precompLayer.outPoint - precompLayer.inPoint) - (1/comp.frameRate));
-
-            //remove first and last time remap points
-            //precompLayer.timeRemap.removeKey(precompLayer.timeRemap.nearestKeyIndex(0));
-            precompLayer.timeRemap.removeKey(precompLayer.timeRemap.nearestKeyIndex(precomp.duration + precompLayer.startTime));
-        }
-
-        //iterate through all precomps and decide what to do
-        for(var i=1; i <= twixFolder.numItems; i++) {
-            precomp = twixFolder.item(i);
-            //slice cuts off the first 5 letters- the twix_ part
-            precompLayer = matchNameToLayer(precomp.name.slice(5), comp);
-            if(constantFPS.value == true) { //3a
-                twixConstant(precomp, 0);
-            } else if(cutFPS.value == true) { //3b
-                //need to do this sometime
-            } else if(variableFPS.value == true) { //3c
-                var keyframes = twixVariable(precomp);
-                //todo: change comp duration and time remap keyframes accordingly
-                precomp.duration = (keyframes - 1)/precomp.frameRate;
-                precompLayer.timeRemap.setValueAtTime(precompLayer.inPoint + (keyframes/comp.frameRate), (keyframes - 1)/precomp.frameRate);
-                precompLayer.timeRemap.removeKey(precompLayer.timeRemap.nearestKeyIndex(precompLayer.outPoint));
-                precompLayer.outPoint = precompLayer.inPoint + ((keyframes + 1)/comp.frameRate);
-            } else if(detectFPS.value == true) { //autodetect one of the top choices
-
+            //base case just add the 1 layer
+            if(firstLayer.index == lastLayer.index) {
+                layers = [firstLayer];
+            } else {
+                //iterate through indexes and add list items
+                for(var i=firstLayer.index; i <= lastLayer.index; i++) {
+                    layers.push(comp.layer(i));
+                }
             }
+
+            //if there is scene detection, detect and cut
+            if(autoCut.value == true) {
+                //scene detection stuff here
+                //probably python?
+            }
+
+            //precomp range of layers
+            var twixFolder = app.project.items.addFolder("Twixtor Precomps");
+            for(var i=0; i < layers.length; i++) {
+                var layerIndex = layers[i].index;
+                var precomp = comp.layers.precompose([layers[i].index], "twix_"+ layers[i].name, false);
+                var precompLayer = comp.layers[layerIndex];
+                //precomp fits the same area and same duration as original
+                // precomp.displayStartTime = precompLayer.inPoint - precompLayer.startTime;
+                //the next 5 lines are mythical and are not to be changed under any circumstances
+                precomp.duration = precompLayer.outPoint - precompLayer.startTime;
+                precomp.layers[1].outPoint = precompLayer.outPoint - precompLayer.startTime;
+                precomp.layers[1].inPoint = precompLayer.inPoint - precompLayer.startTime;
+                precomp.layers[1].startTime = -precompLayer.inPoint + precompLayer.startTime;
+                precomp.duration = precompLayer.outPoint - precompLayer.inPoint;
+                precomp.parentFolder = twixFolder;
+
+                //enable time remapping on each clip
+                precompLayer.timeRemapEnabled = true;
+
+                //add points to in and out
+                //setValueAtTime(old time, new time);
+                precompLayer.timeRemap.setValueAtTime(precompLayer.inPoint, precompLayer.inPoint - precompLayer.inPoint);
+                precompLayer.timeRemap.setValueAtTime(precompLayer.outPoint - (1/comp.frameRate), (precompLayer.outPoint - precompLayer.inPoint) - (1/comp.frameRate));
+
+                //remove first and last time remap points
+                //precompLayer.timeRemap.removeKey(precompLayer.timeRemap.nearestKeyIndex(0));
+                precompLayer.timeRemap.removeKey(precompLayer.timeRemap.nearestKeyIndex(precomp.duration + precompLayer.startTime));
+            }
+
+            //iterate through all precomps and decide what to do
+            for(var i=1; i <= twixFolder.numItems; i++) {
+                precomp = twixFolder.item(i);
+                //slice cuts off the first 5 letters- the twix_ part
+                precompLayer = matchNameToLayer(precomp.name.slice(5), comp);
+                if(constantFPS.value == true) { //3a
+                    twixConstant(precomp, 0);
+                } else if(cutFPS.value == true) { //3b
+                    //need to do this sometime
+                } else if(variableFPS.value == true) { //3c
+                    var keyframes = twixVariable(precomp);
+                    //todo: change comp duration and time remap keyframes accordingly
+                    precomp.duration = (keyframes - 1)/precomp.frameRate;
+                    precompLayer.timeRemap.setValueAtTime(precompLayer.inPoint + (keyframes/comp.frameRate), (keyframes - 1)/precomp.frameRate);
+                    precompLayer.timeRemap.removeKey(precompLayer.timeRemap.nearestKeyIndex(precompLayer.outPoint));
+                    precompLayer.outPoint = precompLayer.inPoint + ((keyframes + 1)/comp.frameRate);
+                } else if(detectFPS.value == true) { //autodetect one of the top choices
+
+                }
+            }
+
+            app.endUndoGroup();
         }
 
-        app.endUndoGroup();
+        win.onResizing = win.onResize = function() {
+            this.layout.resize();
+        };
+
+        win instanceof Window
+            ?
+            (win.center(), win.show()) : (win.layout.layout(true), win.layout.resize());
     }
 
     //applies twixtor on a clip
@@ -318,31 +334,6 @@
         }
         return fps;
     }
-
-    //Returns the FPS of a given layer as a dict {fps:#frames, fps:#frames...}
-    //Assumes variable FPS
-    //Uses built-in extendscript stuff
-    function detectVariableFPS(layer) {
-        var fps = {};
-        var precomp;
-        //if fps doesn't match precomp layer and do testing in there
-        if(layer.containingComp.frameRate != fps) {
-            precomp = comp.layers.precompose([layers[i].index], "TEMP", false);
-            layer = precomp.layers(1);
-        }
-
-        //get color space of current frame
-
-        //loop through each frame, get color space until it changes
-
-        //clean up by removing precomp
-        if(precomp != undefined && precomp != null) {
-            precomp.remove();
-        }
-        return fps;
-    }
-
-    
 
     //cuts a clip by trying to detect where anims end and start
     //difficult, maybe not doable
@@ -609,4 +600,4 @@
         return null;
     }
 
-})();
+})(this);
