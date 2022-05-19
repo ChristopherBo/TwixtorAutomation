@@ -172,7 +172,8 @@
         // mainWindow.show();
 
         setupButton.onClick = function() {
-            win.close();
+            //win.close();
+            alert("gogogo");
 
             app.beginUndoGroup("Auto Twixtor Script");
 
