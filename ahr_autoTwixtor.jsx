@@ -173,6 +173,7 @@
 
         setupButton.onClick = function() {
             //win.close();
+            if(debug.value) { writeToDebugFile("Starting...\n"); }
             alert("gogogo");
 
             app.beginUndoGroup("Auto Twixtor Script");
@@ -185,6 +186,7 @@
 
             //if firstlayer's index is larger than lastlayer's swap what they are
             if(firstLayer.index > lastLayer.index) {
+                if(debug.value) { writeToDebugFile("Swapping first and last layer\n") }
                 firstLayer, lastLayer = lastLayer, firstLayer;
             }
 
@@ -207,6 +209,7 @@
             //precomp range of layers
             var twixFolder = app.project.items.addFolder("Twixtor Precomps");
             for(var i=0; i < layers.length; i++) {
+                if(debug.value) { writeToDebugFile("Setting up " + layers[i].name + "\n"); }
                 var layerIndex = layers[i].index;
                 var precomp = comp.layers.precompose([layers[i].index], "twix_"+ layers[i].name, false);
                 var precompLayer = comp.layers[layerIndex];
@@ -231,18 +234,23 @@
                 //remove first and last time remap points
                 //precompLayer.timeRemap.removeKey(precompLayer.timeRemap.nearestKeyIndex(0));
                 precompLayer.timeRemap.removeKey(precompLayer.timeRemap.nearestKeyIndex(precomp.duration + precompLayer.startTime));
+                if(debug.value) { writeToDebugFile("Finished setting up " + layers[i].name + "\n"); }
             }
 
             //iterate through all precomps and decide what to do
             for(var i=1; i <= twixFolder.numItems; i++) {
                 precomp = twixFolder.item(i);
+                if(debug.value) { writeToDebugFile("Twixtoring precomp " + precomp.name + "...\n"); }
                 //slice cuts off the first 5 letters- the twix_ part
                 precompLayer = matchNameToLayer(precomp.name.slice(5), comp);
                 if(constantFPS.value == true) { //3a
+                    if(debug.value) { writeToDebugFile("Twix method 3a chosen.\n"); }
                     twixConstant(precomp, 0);
                 } else if(cutFPS.value == true) { //3b
+                    if(debug.value) { writeToDebugFile("Twix method 3b chosen.\n"); }
                     //need to do this sometime
                 } else if(variableFPS.value == true) { //3c
+                    if(debug.value) { writeToDebugFile("Twix method 3c chosen.\n"); }
                     var keyframes = twixVariable(precomp);
                     //todo: change comp duration and time remap keyframes accordingly
                     precomp.duration = (keyframes - 1)/precomp.frameRate;
@@ -252,9 +260,364 @@
                 } else if(detectFPS.value == true) { //autodetect one of the top choices
 
                 }
+                if(debug.value) { writeToDebugFile("Finished twixtoring precomp " + precomp.name + "\n"); }
+            }
+            
+            if(debug.value) { writeToDebugFile("autoTwixtor complete.\n"); }
+            app.endUndoGroup();
+        }
+
+        //applies twixtor on a clip
+        function twixConstant(precomp, fps) {
+            if(debug.value) { writeToDebugFile("twixConstant: starting...\n"); }
+            //0 fps == default from GUI
+            //if gui is nothing set to layer 1's fps
+            //if layer 1 doesnt have fps set it to 23.976
+            // if(fps == 0) { fps = inputFPS.value } old code relating to manual fps input
+            if((fps == undefined || fps == 0) && precomp.layers[1].frameRate != undefined) { fps = precomp.layers[1].frameRate }
+            if(fps == 0 || fps == undefined) { fps = 23.976 }
+
+            //auto detect fps
+            if(detectFPS.value) {
+                if(debug.value) { writeToDebugFile("twixConstant: autodetecting FPS via detectFramerate...\n"); }
+                fps = detectFramerate(precomp.layers[1]);
             }
 
-            app.endUndoGroup();
+            //add twixtor
+            for(var i=1; i <=precomp.layers.length; i++) {
+                precomp.layers[i]("Effects").addProperty("Twixtor Pro");
+                try {
+                    precomp.layers[i].Effects("Twixtor Pro")("In FPS is Out FPS").setValue(0);
+                } catch (e) {
+                    //do nothing
+                }
+                precomp.layers[i].Effects("Twixtor Pro")("Input: Frame Rate").setValue(fps);
+            }
+            if(debug.value) { writeToDebugFile("twixConstant: complete\n"); }
+        }
+
+        //Returns the FPS of a given layer.
+        //Assumes constant FPS
+        //Uses built-in extendscript stuff
+        function detectFramerate(layer) {
+            if(debug.value) { writeToDebugFile("detectFramerate: starting...\n"); }
+            var fps = layer.source.frameRate;
+            var precomp;
+            var comp = layer.containingComp;
+            //if fps doesn't match precomp layer and do testing in there
+            if(comp.frameRate != fps) {
+                precomp = comp.layers.precompose([layers[i].index], "TEMP", false);
+                layer = precomp.layers(1);
+            }
+
+            var splits;
+
+            if(File.fs != "Windows") {
+                //forced to use extendscript detector
+                if(debug.value) { writeToDebugFile("detectFramerate: detecting FPS via splitScene...\n"); }
+                alert("Not a Windows computer- falling back to legacy framerate detector!");
+                splits = splitScene(comp, layer);
+            } else {
+                //use more advanced python detector
+                if(debug.value) { writeToDebugFile("detectFramerate: detecting FPS via pythonFPSDetector...\n"); }
+                splits = pythonFPSDetector(comp, layer, false);
+            }
+            
+
+            //fps based on averaging differences of all times
+            // var random = genRand(0, splits.length-1, 0);
+            // fps = 1 / (splits[random] - splits[random - 1]);
+            if(splits.length > 0) {
+                var tempfps = 0;
+                tempfps += (splits[1] - splits[0]);
+                for(var i=2; i < splits.length-1; i++) {
+                    tempfps += 1 / (splits[i] - splits[i-1]);
+                }
+                fps = Math.round(tempfps / splits.length); //round to int
+            }
+
+            //clean up by removing precomp
+            if(precomp != undefined && precomp != null) {
+                precomp.remove();
+            }
+            return fps;
+        }
+
+        //cuts a clip by trying to detect where anims end and start
+        //difficult, maybe not doable
+        //probably need to do configurations to see where 1 starts and the other ends
+        function twixVariable(precomp) {
+            if(debug.value) { writeToDebugFile("twixVariable: starting...\n"); }
+            var layer = precomp.layers[1];
+            layer.timeRemapEnabled = true;
+            var splits;
+            if(debug.value) { writeToDebugFile("File.fs: " + File.fs + "\n"); }
+            if(File.fs != "Windows") {
+                //forced to use extendscript detector
+                alert("Not a Windows computer- falling back to legacy framerate detector!");
+                if(debug.value) { writeToDebugFile("twixVariable: Starting splitScene..\n"); }
+                splits = splitScene(precomp, layer);
+            } else {
+                //use more advanced python detector
+                if(debug.value) { writeToDebugFile("twixVariable: Starting fpsDetector..\n"); }
+                splits = pythonFPSDetector(precomp, layer, false);
+            }
+
+            //set each fps change as a new frame
+            if(splits.length > 0) {
+                for(var i=0; i < splits.length-1; i++) {
+                    layer.timeRemap.setValueAtTime(i/precomp.frameRate, parseFloat(splits[i]) + Math.abs(layer.startTime));
+                }
+                //shorten precomp duration to fps
+            }
+
+            return splits.length;
+        }
+
+        // modified from NTProduction's scene detect script, free online
+        // returns every frame the scene changed
+        function splitScene(comp, layer) {
+            // lower = more sensitive, default = 100
+            var threshold = 100; 
+            var rText = comp.layers.addText();
+            var gText = comp.layers.addText();
+            var bText = comp.layers.addText();
+        
+            rText.property("Source Text").expression = 'targetLayer = thisComp.layer("'+layer.name+'"); samplePoint = [thisComp.width/2, thisComp.height/2]; sampleRadius = [thisComp.width,thisComp.height]; sampledColor_8bpc = 255 * targetLayer.sampleImage(samplePoint, sampleRadius, true, time); R = Math.round(sampledColor_8bpc[0]); text.sourceText = R';
+            gText.property("Source Text").expression = 'targetLayer = thisComp.layer("'+layer.name+'"); samplePoint = [thisComp.width/2, thisComp.height/2]; sampleRadius = [thisComp.width,thisComp.height]; sampledColor_8bpc = 255 * targetLayer.sampleImage(samplePoint, sampleRadius, true, time); R = Math.round(sampledColor_8bpc[1]); text.sourceText = R';
+            bText.property("Source Text").expression = 'targetLayer = thisComp.layer("'+layer.name+'"); samplePoint = [thisComp.width/2, thisComp.height/2]; sampleRadius = [thisComp.width,thisComp.height]; sampledColor_8bpc = 255 * targetLayer.sampleImage(samplePoint, sampleRadius, true, time); R = Math.round(sampledColor_8bpc[2]); text.sourceText = R';
+        
+            //writeToRGBFile(parseInt(rText.property("Source Text").value), parseInt(gText.property("Source Text").value), parseInt(bText.property("Source Text").value));
+        
+            var splitTimes = [];
+        
+            comp.time = 0;
+            var ogR, ogG, ogB;
+            var r, g, b;
+            //var temp = readRGBFile();
+            ogR = parseInt(rText.property("Source Text").value);
+            ogG = parseInt(gText.property("Source Text").value);
+            ogB = parseInt(bText.property("Source Text").value);
+        
+            var ogLuma, luma;
+            ogLuma = (ogR+ogG+ogB)/3;
+        
+            var frameIncrement = 1; //go frame by frame
+            var frameRate = Math.floor(1/comp.frameDuration);
+            for(var i = comp.time*frameRate; i < comp.duration*frameRate; i+=frameIncrement) {
+        
+                // move forward in time
+                comp.time += frameIncrement/frameRate;
+                
+                // write new values in file
+                //writeToRGBFile(parseInt(rText.property("Source Text").value), parseInt(gText.property("Source Text").value), parseInt(bText.property("Source Text").value));
+        
+                //temp = readRGBFile();
+                r = parseInt(rText.property("Source Text").value);
+                g = parseInt(gText.property("Source Text").value);
+                b = parseInt(bText.property("Source Text").value);
+        
+                luma = (r+g+b)/3;
+                if(ogLuma / luma * 100 > threshold || luma / ogLuma * 100 > threshold) {
+                    splitTimes.push(i/frameRate);
+                }
+        
+                ogLuma = luma;
+                ogR = r;
+                ogG = g;
+                ogB = b;
+        
+            }
+            splitTimes.shift();
+        
+            //alert(splitTimes);
+        
+            rText.remove();
+            gText.remove();
+            bText.remove();
+        
+            return splitTimes;
+            //layer.remove();
+        }
+
+        //python FPS detector.
+        //returns a list of frames where the scene changes
+        //if sendThreshold = true returns a second list with the corresponding thresholds
+        function pythonFPSDetector(comp, layer, sendThreshold) {
+            if(debug.value) { writeToDebugFile("pythonFPSDetector: starting...\n"); }
+            //default value
+            if(sendThreshold == undefined) { sendThreshold = false; }
+            
+            var splits = [];
+            var thresholds = [];
+
+            //give the python file info on what it's detecting
+            var startTime = layer.inPoint + Math.abs(layer.startTime);
+            var endTime = layer.outPoint;
+            //ie: /g/Recording Footage/Tutorials/TwixtorAutomation/Violet Evergarden, Episode 1.mp4
+            if(debug.value) { writeToDebugFile("Writing data to rgbFile: " + startTime + ", " + endTime + "\n"); }
+            writeToRGBFile(startTime + "," + endTime);
+            if(debug.value) { writeToDebugFile("Success.\n"); }
+            //for use by the bash script later on
+            var layerPath = layer.source.file.fsName;
+
+            //need to make sure the bash and python files are in the same directory as this script
+            var scriptFile = new File($.fileName); //references this file
+            var scriptPath = scriptFile.parent; // leads to C:\Users\test\Documents\ae scripting
+            if(scriptPath.getFiles("*.exe").length <= 0) {
+                alert("Error: fps_detector.exe needs to exist in the same folder as this script!");
+                return;
+            }
+
+            var fpsFile = getRGBFile();
+            if(!fpsFile.exists) {
+                fpsFile = new File(bpmTextFilePath);
+            }
+            var myScriptPath = File(app.activeScript);
+            //var myScriptName = myScriptPath.fullName; // Leads to /c/Program Files/Adobe/Adobe Illustrator CC 2017/Support Files/Content/Windows/tmp000000001
+            //only works on windows bc its a bat file
+            var os = $.os;
+            if (os.indexOf("Windows") == -1) {
+                alert("Error: Python FPS Detector only works with Windows. Falling back to Extendscript...");
+                return splitScene(comp, layer);
+            }
+            if(debug.value) { writeToDebugFile("Creating and filling in bash script...\n"); }
+            var batPath = String(scriptPath.fullName) + "/fps_analyzer.bat";
+            var bashScript = File(batPath);
+            if (!bashScript.exists) {
+                bashScript = new File(batPath); // Create the bat file (actually sh file) if not existing
+            }
+            //scriptPath.fullName = absolute reference from beginning
+            //bashScript.lineFeed = "Unix"; 
+            bashScript.encoding = "UTF-8";
+            bashScript.lineFeed = "Windows"; //since it's a .bat file need CRLF instead of LF
+            bashScript.open("w") //write and destroy everything existing in the file. r for read, a for append to existing, e for read&append
+            var bashScriptContents = ["@echo off\n", 
+                                "echo ///////////////////////////////\n",
+                                "echo Detecting fps...\n",
+                                "echo ///////////////////////////////\n",
+                                "\"" + String(scriptPath.fsName) + "\\fps_detector.exe\" \"" + String(layerPath) + "\"\n",
+                                "echo Finished! This program will close in 5 seconds. You can also close it with Ctrl + C.\n",
+                                "timeout 6\n"];
+            for(var i=0; i <= bashScriptContents.length; i++) {
+                bashScript.write(bashScriptContents[i]);
+            }
+            bashScript.close();
+            if(debug.value) { writeToDebugFile("Executing bash script...\n"); }
+            bashScript.execute(); // execute the bat file
+
+            //now we need to watch rgb.txt for any changes
+            var dataNotFound = true;
+            var filesAmt = scriptPath.getFiles().length;
+            var iterations = 0;
+            while(dataNotFound) {
+                $.sleep(1000);
+                //read and detect if data has been dumped, then wait another second for all the data
+                if(debug.value) { writeToDebugFile("Polling rgb.txt... \n"); }
+                var data = readRGBFile();
+                if(data != startTime + "," + endTime && data != "") {
+                    if(debug.value) { writeToDebugFile("Recieved data from python file!\n"); }
+                    $.sleep(1000);
+                    //parse file
+                    //alert("Data recieved!");
+                    data = readRGBFile();
+                    for(var i=0; i <= data.length-1; i++) {
+                        tokens = data[i].split(",");
+                        if(tokens.length == 2) {
+                            splits.push(tokens[0]);
+                            thresholds.push(tokens[1]);
+                        }
+                    }
+                    dataNotFound = false;
+                } else if(iterations > 30) { //30 seconds to get it
+                    if(debug.value) { writeToDebugFile("Could not get data from python file.\n"); }
+                    alert("Error: Could not analyze FPS of " + layer.name +" with python! Falling back to ExtendScript...");
+                    return splitScene(comp, layer);
+                }
+                iterations++;
+            }
+
+            //delete fps file now that we're done with it
+            fpsFile.remove();
+
+            if(debug.value) { writeToDebugFile("Completed pythonFPSDetector on " + comp.name + ".\nSplits: " + splits.toString() + "\nThresholds: " + thresholds.toString() + "\n"); }
+            if(sendThreshold) {
+                return splits, thresholds;
+            }
+            return splits;
+        }
+        
+        //writes contents to the rgb file.
+        function writeToRGBFile(contents) {
+            var rgbFile = getRGBFile();
+            rgbFile.open("w");
+            rgbFile.write(contents);
+            rgbFile.close();
+        }
+
+        //writes contents to the debug file.
+        function writeToDebugFile(contents) {
+            var debugFile = File("~/Documents/debug.txt");
+            //for some reason ~/ goes to User/username/OneDrive/ instead of User/username if you have onedrive installed
+            //this normally wouldn't be a problem but we need to coordinate with the python file which uses User/username/
+            if(debugFile.relativeURI.indexOf("OneDrive") != -1) {
+                debugFile = File("~/../Documents/debug.txt");
+            }
+            debugFile.open("a");
+            debugFile.write(contents);
+            debugFile.close();
+        }
+        
+        //returns data in the rgb file.
+        function readRGBFile() {
+            var rgbFile = getRGBFile();
+            rgbFile.open("r");
+            var data = rgbFile.read().split("\n");
+            rgbFile.close();
+        
+            return data;
+        }
+
+        //gets the rgb file
+        function getRGBFile() {
+            var rgbFile = File("~/Documents/rgb.txt");
+            //for some reason ~/ goes to User/username/OneDrive/ instead of User/username if you have onedrive installed
+            //this normally wouldn't be a problem but we need to coordinate with the python file which uses User/username/
+            if(rgbFile.relativeURI.indexOf("OneDrive") != -1) {
+                rgbFile = File("~/../Documents/rgb.txt");
+            }
+            return rgbFile;
+        }
+
+        //grabs all the names of the given comp and returns them in a list.
+        function getAllCompLayerNames(comp) {
+            var layerNames = [];
+            //start at 1 bc comp.layers starts at 1
+            for(var i=1; i <= comp.layers.length; i++) {
+                layerNames.push(comp.layers[i].name);
+            }
+            return layerNames;
+        }
+
+        //finds a layer in a comp based on it's name
+        function findLayerFromName(comp, layerName) {
+            for(var i=1; i<=comp.layers.length; i++) {
+                if(comp.layers[i].name == layerName.toString()) {
+                    return comp.layers[i];
+                }
+            }
+            alert("Error: Could not find layer " + layerName.toString() + "!");
+            return false;
+        }
+
+        //matches a name to a layer in a given comp
+        function matchNameToLayer(name, comp) {
+            for(var i=1; i < comp.layers.length; i++) {
+                if(comp.layer(i).name == name) {
+                    return comp.layer(i);
+                }
+            }
+            return null;
         }
 
         win.onResizing = win.onResize = function() {
@@ -264,341 +627,6 @@
         win instanceof Window
             ?
             (win.center(), win.show()) : (win.layout.layout(true), win.layout.resize());
-    }
-
-    //applies twixtor on a clip
-    function twixConstant(precomp, fps) {
-        //0 fps == default from GUI
-        //if gui is nothing set to layer 1's fps
-        //if layer 1 doesnt have fps set it to 23.976
-        // if(fps == 0) { fps = inputFPS.value } old code relating to manual fps input
-        if((fps == undefined || fps == 0) && precomp.layers[1].frameRate != undefined) { fps = precomp.layers[1].frameRate }
-        if(fps == 0 || fps == undefined) { fps = 23.976 }
-
-        //auto detect fps
-        if(detectFPS.value) {
-            fps = detectFramerate(precomp.layers[1]);
-        }
-
-        //add twixtor
-        for(var i=1; i <=precomp.layers.length; i++) {
-            precomp.layers[i]("Effects").addProperty("Twixtor Pro");
-            try {
-                precomp.layers[i].Effects("Twixtor Pro")("In FPS is Out FPS").setValue(0);
-            } catch (e) {
-                //do nothing
-            }
-            precomp.layers[i].Effects("Twixtor Pro")("Input: Frame Rate").setValue(fps);
-        }
-    }
-
-    //Returns the FPS of a given layer.
-    //Assumes constant FPS
-    //Uses built-in extendscript stuff
-    function detectFramerate(layer) {
-        var fps = layer.source.frameRate;
-        var precomp;
-        var comp = layer.containingComp;
-        //if fps doesn't match precomp layer and do testing in there
-        if(comp.frameRate != fps) {
-            precomp = comp.layers.precompose([layers[i].index], "TEMP", false);
-            layer = precomp.layers(1);
-        }
-
-        var splits;
-
-        if(File.fs != "Windows") {
-            //forced to use extendscript detector
-            alert("Not a Windows computer- falling back to legacy framerate detector!");
-            splits = splitScene(comp, layer);
-        } else {
-            //use more advanced python detector
-            splits = pythonFPSDetector(comp, layer, false);
-        }
-        
-
-        //fps based on averaging differences of all times
-        // var random = genRand(0, splits.length-1, 0);
-        // fps = 1 / (splits[random] - splits[random - 1]);
-        if(splits.length > 0) {
-            var tempfps = 0;
-            tempfps += (splits[1] - splits[0]);
-            for(var i=2; i < splits.length-1; i++) {
-                tempfps += 1 / (splits[i] - splits[i-1]);
-            }
-            fps = Math.round(tempfps / splits.length); //round to int
-        }
-
-        //clean up by removing precomp
-        if(precomp != undefined && precomp != null) {
-            precomp.remove();
-        }
-        return fps;
-    }
-
-    //cuts a clip by trying to detect where anims end and start
-    //difficult, maybe not doable
-    //probably need to do configurations to see where 1 starts and the other ends
-    function twixVariable(precomp) {
-        var layer = precomp.layers[1];
-        layer.timeRemapEnabled = true;
-        var splits;
-        
-        if(File.fs != "Windows") {
-            //forced to use extendscript detector
-            alert("Not a Windows computer- falling back to legacy framerate detector!");
-            splits = splitScene(precomp, layer);
-        } else {
-            //use more advanced python detector
-            splits = pythonFPSDetector(precomp, layer, false);
-        }
-
-        //set each fps change as a new frame
-        if(splits.length > 0) {
-            for(var i=0; i < splits.length-1; i++) {
-                layer.timeRemap.setValueAtTime(i/precomp.frameRate, parseFloat(splits[i]) + Math.abs(layer.startTime));
-            }
-            //shorten precomp duration to fps
-        }
-
-        return splits.length;
-    }
-
-    // modified from NTProduction's scene detect script, free online
-    // returns every frame the scene changed
-    function splitScene(comp, layer) {
-        // lower = more sensitive, default = 100
-        var threshold = 100; 
-        var rText = comp.layers.addText();
-        var gText = comp.layers.addText();
-        var bText = comp.layers.addText();
-    
-        rText.property("Source Text").expression = 'targetLayer = thisComp.layer("'+layer.name+'"); samplePoint = [thisComp.width/2, thisComp.height/2]; sampleRadius = [thisComp.width,thisComp.height]; sampledColor_8bpc = 255 * targetLayer.sampleImage(samplePoint, sampleRadius, true, time); R = Math.round(sampledColor_8bpc[0]); text.sourceText = R';
-        gText.property("Source Text").expression = 'targetLayer = thisComp.layer("'+layer.name+'"); samplePoint = [thisComp.width/2, thisComp.height/2]; sampleRadius = [thisComp.width,thisComp.height]; sampledColor_8bpc = 255 * targetLayer.sampleImage(samplePoint, sampleRadius, true, time); R = Math.round(sampledColor_8bpc[1]); text.sourceText = R';
-        bText.property("Source Text").expression = 'targetLayer = thisComp.layer("'+layer.name+'"); samplePoint = [thisComp.width/2, thisComp.height/2]; sampleRadius = [thisComp.width,thisComp.height]; sampledColor_8bpc = 255 * targetLayer.sampleImage(samplePoint, sampleRadius, true, time); R = Math.round(sampledColor_8bpc[2]); text.sourceText = R';
-    
-        //writeToRGBFile(parseInt(rText.property("Source Text").value), parseInt(gText.property("Source Text").value), parseInt(bText.property("Source Text").value));
-    
-        var splitTimes = [];
-    
-        comp.time = 0;
-        var ogR, ogG, ogB;
-        var r, g, b;
-        //var temp = readRGBFile();
-        ogR = parseInt(rText.property("Source Text").value);
-        ogG = parseInt(gText.property("Source Text").value);
-        ogB = parseInt(bText.property("Source Text").value);
-    
-        var ogLuma, luma;
-        ogLuma = (ogR+ogG+ogB)/3;
-    
-        var frameIncrement = 1; //go frame by frame
-        var frameRate = Math.floor(1/comp.frameDuration);
-        for(var i = comp.time*frameRate; i < comp.duration*frameRate; i+=frameIncrement) {
-    
-            // move forward in time
-            comp.time += frameIncrement/frameRate;
-            
-            // write new values in file
-            //writeToRGBFile(parseInt(rText.property("Source Text").value), parseInt(gText.property("Source Text").value), parseInt(bText.property("Source Text").value));
-    
-            //temp = readRGBFile();
-            r = parseInt(rText.property("Source Text").value);
-            g = parseInt(gText.property("Source Text").value);
-            b = parseInt(bText.property("Source Text").value);
-    
-            luma = (r+g+b)/3;
-            if(ogLuma / luma * 100 > threshold || luma / ogLuma * 100 > threshold) {
-                splitTimes.push(i/frameRate);
-            }
-    
-            ogLuma = luma;
-            ogR = r;
-            ogG = g;
-            ogB = b;
-    
-        }
-        splitTimes.shift();
-    
-        //alert(splitTimes);
-    
-        rText.remove();
-        gText.remove();
-        bText.remove();
-    
-        return splitTimes;
-        //layer.remove();
-    }
-
-    //python FPS detector.
-    //returns a list of frames where the scene changes
-    //if sendThreshold = true returns a second list with the corresponding thresholds
-    function pythonFPSDetector(comp, layer, sendThreshold) {
-        //default value
-        if(sendThreshold == undefined) { sendThreshold = false; }
-        
-        var splits = [];
-        var thresholds = [];
-
-        //give the python file info on what it's detecting
-        var startTime = layer.inPoint + Math.abs(layer.startTime);
-        var endTime = layer.outPoint;
-        //ie: /g/Recording Footage/Tutorials/TwixtorAutomation/Violet Evergarden, Episode 1.mp4
-        writeToRGBFile(startTime + "," + endTime);
-
-        //for use by the bash script later on
-        var layerPath = layer.source.file.fsName;
-
-        //need to make sure the bash and python files are in the same directory as this script
-        var scriptFile = new File($.fileName); //references this file
-        var scriptPath = scriptFile.parent; // leads to C:\Users\test\Documents\ae scripting
-        if(scriptPath.getFiles("*.exe").length <= 0) {
-            alert("Error: fps_detector.exe needs to exist in the same folder as this script!");
-            return;
-        }
-
-        var fpsFile = getRGBFile();
-        if(!fpsFile.exists) {
-            fpsFile = new File(bpmTextFilePath);
-        }
-        var myScriptPath = File(app.activeScript);
-        //var myScriptName = myScriptPath.fullName; // Leads to /c/Program Files/Adobe/Adobe Illustrator CC 2017/Support Files/Content/Windows/tmp000000001
-        //only works on windows bc its a bat file
-        var os = $.os;
-        if (os.indexOf("Windows") == -1) {
-            alert("Error: Python FPS Detector only works with Windows. Falling back to Extendscript...");
-            return splitScene(comp, layer);
-        }
-        var batPath = String(scriptPath.fullName) + "/fps_analyzer.bat";
-        var bashScript = File(batPath);
-        if (!bashScript.exists) {
-            bashScript = new File(batPath); // Create the bat file (actually sh file) if not existing
-        }
-        //scriptPath.fullName = absolute reference from beginning
-        //bashScript.lineFeed = "Unix"; 
-        bashScript.encoding = "UTF-8";
-        bashScript.lineFeed = "Windows"; //since it's a .bat file need CRLF instead of LF
-        bashScript.open("w") //write and destroy everything existing in the file. r for read, a for append to existing, e for read&append
-        var bashScriptContents = ["@echo off\n", 
-                            "echo ///////////////////////////////\n",
-                            "echo Detecting fps...\n",
-                            "echo ///////////////////////////////\n",
-                            "\"" + String(scriptPath.fsName) + "\\fps_detector.exe\" \"" + String(layerPath) + "\"\n",
-                            "echo Finished! This program will close in 5 seconds. You can also close it with Ctrl + C.\n",
-                            "timeout 6\n"];
-        for(var i=0; i <= bashScriptContents.length; i++) {
-            bashScript.write(bashScriptContents[i]);
-        }
-        bashScript.close();
-        bashScript.execute(); // execute the bat file
-
-        //now we need to watch rgb.txt for any changes
-        var dataNotFound = true;
-        var filesAmt = scriptPath.getFiles().length;
-        var iterations = 0;
-        while(dataNotFound) {
-            $.sleep(1000);
-            //read and detect if data has been dumped, then wait another second for all the data
-            var data = readRGBFile();
-            if(data != startTime + "," + endTime && data != "") {
-                $.sleep(1000);
-                //parse file
-                //alert("Data recieved!");
-                data = readRGBFile();
-                for(var i=0; i <= data.length-1; i++) {
-                    tokens = data[i].split(",");
-                    if(tokens.length == 2) {
-                        splits.push(tokens[0]);
-                        thresholds.push(tokens[1]);
-                    }
-                }
-                //first column = splits
-                //second column = threshold
-
-                //bpmText.text = "The BPM of " + String(layerList.selection) + " is: " + data;
-                break;
-            }
-            if(iterations > 30) { //30 seconds to get it
-                alert("Error: Could not analyze FPS of " + layer.name +" with python! Falling back to ExtendScript...");
-                return splitScene(comp, layer);
-            }
-            iterations++;
-        }
-
-        //delete rgb.txt now that we're done with it
-        // files = scriptPath.getFiles();
-        // for(var i=1; i <= files.length-1; i++) {
-        //     if(new RegExp(/rgb.txt$/).test(files[i].name)) {
-        //         files[i].remove();
-        //         return;
-        //     }
-        // }
-        fpsFile.remove();
-
-        if(sendThreshold) {
-            return splits, thresholds;
-        }
-        return splits;
-    }
-    
-    //writes contents to the rgb file.
-    function writeToRGBFile(contents) {
-        var rgbFile = getRGBFile();
-        rgbFile.open("w");
-        rgbFile.write(contents);
-        rgbFile.close();
-    }
-    
-    //returns data in the rgb file.
-    function readRGBFile() {
-        var rgbFile = getRGBFile();
-        rgbFile.open("r");
-        var data = rgbFile.read().split("\n");
-        rgbFile.close();
-    
-        return data;
-    }
-
-    //gets the rgb file
-    function getRGBFile() {
-        var rgbFile = File("~/Documents/rgb.txt");
-        //for some reason ~/ goes to User/username/OneDrive/ instead of User/username if you have onedrive installed
-        //this normally wouldn't be a problem but we need to coordinate with the python file which uses User/username/
-        if(rgbFile.relativeURI.indexOf("OneDrive") != -1) {
-            rgbFile = File("~/../Documents/rgb.txt");
-        }
-        return rgbFile;
-    }
-
-    //grabs all the names of the given comp and returns them in a list.
-    function getAllCompLayerNames(comp) {
-        var layerNames = [];
-        //start at 1 bc comp.layers starts at 1
-        for(var i=1; i <= comp.layers.length; i++) {
-            layerNames.push(comp.layers[i].name);
-        }
-        return layerNames;
-    }
-
-    //finds a layer in a comp based on it's name
-    function findLayerFromName(comp, layerName) {
-        for(var i=1; i<=comp.layers.length; i++) {
-            if(comp.layers[i].name == layerName.toString()) {
-                return comp.layers[i];
-            }
-        }
-        alert("Error: Could not find layer " + layerName.toString() + "!");
-        return false;
-    }
-
-    //matches a name to a layer in a given comp
-    function matchNameToLayer(name, comp) {
-        for(var i=1; i < comp.layers.length; i++) {
-            if(comp.layer(i).name == name) {
-                return comp.layer(i);
-            }
-        }
-        return null;
     }
 
 })(this);
