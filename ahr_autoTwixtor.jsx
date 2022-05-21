@@ -174,7 +174,7 @@
         setupButton.onClick = function() {
             //win.close();
             if(debug.value) { writeToDebugFile("Starting...\n"); }
-            alert("gogogo");
+            //alert("gogogo");
 
             app.beginUndoGroup("Auto Twixtor Script");
 
@@ -465,9 +465,20 @@
             var scriptFile = new File($.fileName); //references this file
             var scriptPath = scriptFile.parent; // leads to C:\Users\test\Documents\ae scripting
             if(scriptPath.getFiles("*.exe").length <= 0) {
-                alert("Error: fps_detector.exe needs to exist in the same folder as this script!");
-                return;
+                //check documents for it
+                if(debug.value) { writeToDebugFile("Script path of " + scriptPath.fsName.toString() + " failed. Testing ~/Documents/...\n"); }
+                scriptPath = "~/Documents/";
+                if(scriptPath.getFiles("*.exe").length <= 0) {
+                    if(debug.value) { writeToDebugFile("Script path of ~/Documents/ failed. Testing ~/../Documents/...\n"); }
+                    scriptPath = "~/../Documents/";
+                    if(scriptPath.getFiles("*.exe").length <= 0) {
+                        if(debug.value) { writeToDebugFile("All script paths failed. Exiting...\n"); }
+                        alert("Error: fps_detector.exe needs to exist in the same folder as this script or in Documents!");
+                        return;
+                    }
+                }
             }
+            if(debug.value) { writeToDebugFile("Script path set to: " + scriptPath.fsName.toString() + ".\n"); }
 
             var fpsFile = getRGBFile();
             if(!fpsFile.exists) {
