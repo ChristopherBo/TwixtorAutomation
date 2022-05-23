@@ -243,7 +243,9 @@ threshold = 0.7;
             //iterate through all precomps and decide what to do
             for(var i=1; i <= twixFolder.numItems; i++) {
                 precomp = twixFolder.item(i);
+                if(debug.value) { writeToDebugFile("//////////////////////////////////////////////////"); }
                 if(debug.value) { writeToDebugFile("Twixtoring precomp " + precomp.name + "...\n"); }
+                if(debug.value) { writeToDebugFile("//////////////////////////////////////////////////"); }
                 //slice cuts off the first 5 letters- the twix_ part
                 precompLayer = matchNameToLayer(precomp.name.slice(5), comp);
                 if(constantFPS.value == true) { //3a
@@ -343,6 +345,7 @@ threshold = 0.7;
             if(precomp != undefined && precomp != null) {
                 precomp.remove();
             }
+            if(debug.value) { writeToDebugFile("detectFramerate: Complete. FPS:" + fps.toString() + "\n"); }
             return fps;
         }
 
@@ -373,13 +376,14 @@ threshold = 0.7;
                 }
                 //shorten precomp duration to fps
             }
-
+            if(debug.value) { writeToDebugFile("twixVariable: Complete.\n"); }
             return splits.length;
         }
 
         // modified from NTProduction's scene detect script, free online
         // returns every frame the scene changed
         function splitScene(comp, layer) {
+            if(debug.value) { writeToDebugFile("splitScene: Starting...\n"); }
             // lower = more sensitive, default = 100
             var threshold = 100; 
             var rText = comp.layers.addText();
@@ -433,12 +437,11 @@ threshold = 0.7;
             }
             splitTimes.shift();
         
-            //alert(splitTimes);
-        
             rText.remove();
             gText.remove();
             bText.remove();
         
+            if(debug.value) { writeToDebugFile("splitscene completed. splits: " + splitTimes + "\n"); }
             return splitTimes;
             //layer.remove();
         }
@@ -556,6 +559,7 @@ threshold = 0.7;
                 iterations++;
             }
 
+            if(debug.value) { writeToDebugFile("Removing temp files...\n"); }
             //delete fps file now that we're done with it
             fpsFile.remove();
             bashScript.remove();
@@ -621,6 +625,7 @@ threshold = 0.7;
 
         //creates the bash file
         function createBashScript(batPath) {
+            if(batPath == undefined) { batPath = String(scriptPath.fullName) + "/fps_analyzer.bat"; }
             var scriptFile = new File($.fileName); //references this file
             var scriptPath = scriptFile.parent; // leads to C:\Users\test\Documents\ae scripting
             var bashScript = File(batPath);
@@ -657,6 +662,34 @@ threshold = 0.7;
                     alert(err);
                     if(debug.value) { writeToDebugFile("ERROR CAUGHT: " + err + "\n"); }
                     return;
+                }
+            }
+            return bashScript;
+        }
+
+        //get the bash script file
+        function getBashScript(batPath) {
+            if(batPath == undefined) { batPath = String(scriptPath.fullName) + "/fps_analyzer.bat"; }
+            var scriptFile = new File($.fileName); //references this file
+            var scriptPath = scriptFile.parent; // leads to C:\Users\test\Documents\ae scripting
+            var bashScript = File(batPath);
+            if(!bashScript.exists) {
+                if(debug.value) { writeToDebugFile("Could not find bash script at " + scriptPath.fsName.toString() + " Trying ~/Documents/...\n"); }
+                try {
+                    bashScript = File("~/Documents/fps_analyzer.bat"); //TODO: if correct this is causing a file explorer window to popup at the location. fix it!
+                    if(!bashScript.exists) {
+                        if(debug.value) { writeToDebugFile("Could not find bash script at ~/Documents/. Trying ~/../Documents/...\n"); }
+                        bashScript = File("~/../Documents/fps_analyzer.bat");
+                        if(!bashScript.exists) {
+                            if(debug.value) { writeToDebugFile("Could not find the bash script for deletion.\n"); }
+                            alert("Could not find bash script for deletion! Please delete fps_analyzer.bat if you see it in your Documents folder or script folder!");
+                            return null;
+                        }
+                    }
+                } catch(err) {
+                    alert(err);
+                    if(debug.value) { writeToDebugFile("ERROR CAUGHT: " + err + "\n"); }
+                    return null;
                 }
             }
             return bashScript;
