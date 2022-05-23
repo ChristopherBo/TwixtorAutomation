@@ -114,6 +114,8 @@ threshold = 0.7;
         helpText.add("statictext", undefined, "Option 3b, 3c, and Scene Detection all use an external Python file to deal with", {name: "helpText"}); 
         helpText.add("statictext", undefined, "image detection and are still experimental. ", {name: "helpText"}); 
         helpText.add("statictext", undefined, "", {name: "helpText"}); 
+        helpText.add("statictext", undefined, "If you can't see certain features, your After Effects needs to be v22.3 or later.", {name: "helpText"}); 
+        helpText.add("statictext", undefined, "", {name: "helpText"}); 
         helpText.preferredSize.width = 400;
 
         var helpButton = mainGroup.add("button", undefined, "?");
@@ -155,8 +157,10 @@ threshold = 0.7;
         // inputFPS.preferredSize.height = 17;
         var constantFPS = groupPanel.add("radiobutton", undefined, "Constant Framerate (3a):");
         constantFPS.value = true;
-        var cutFPS = groupPanel.add("radiobutton", undefined, "Framerate occasionally changes (3b)");
-        cutFPS.value = false;
+        if(parseFloat(app.version.substring(0,4)) >= 22.3) { //only for ae v22.3 and above
+            var cutFPS = groupPanel.add("radiobutton", undefined, "Framerate occasionally changes (3b)");
+            cutFPS.value = false;
+        }
         var variableFPS = groupPanel.add("radiobutton", undefined, "Framerate changes often (3c)");
         variableFPS.value = false;
         var detectFPS = groupPanel.add("checkbox", undefined, "Detect framerate(s) of clips (experimental)");
@@ -164,8 +168,10 @@ threshold = 0.7;
         var threeBText = groupPanel.add("statictext", undefined, "Note: 3b will auto-detect framerate.");
 
         //experimental features and misc buttons
-        var autoCut = groupOptions.add("checkbox", undefined, "Scene Detection (multiple shots in each layer)");
-        autoCut.value = false;
+        if(parseFloat(app.version.substring(0,4)) >= 22.3) { //only for ae v22.3 and above
+            var autoCut = groupOptions.add("checkbox", undefined, "Scene Detection (multiple shots in each layer)");
+            autoCut.value = false;
+        }
         var debug = groupOptions.add("checkbox", undefined, "Debug Program");
         debug.value = false;
         var setupButton = win.add("button", undefined, "Go!");
