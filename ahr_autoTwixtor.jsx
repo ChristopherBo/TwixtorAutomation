@@ -667,34 +667,6 @@ threshold = 0.7;
             return bashScript;
         }
 
-        //get the bash script file
-        function getBashScript(batPath) {
-            if(batPath == undefined) { batPath = String(scriptPath.fullName) + "/fps_analyzer.bat"; }
-            var scriptFile = new File($.fileName); //references this file
-            var scriptPath = scriptFile.parent; // leads to C:\Users\test\Documents\ae scripting
-            var bashScript = File(batPath);
-            if(!bashScript.exists) {
-                if(debug.value) { writeToDebugFile("Could not find bash script at " + scriptPath.fsName.toString() + " Trying ~/Documents/...\n"); }
-                try {
-                    bashScript = File("~/Documents/fps_analyzer.bat"); //TODO: if correct this is causing a file explorer window to popup at the location. fix it!
-                    if(!bashScript.exists) {
-                        if(debug.value) { writeToDebugFile("Could not find bash script at ~/Documents/. Trying ~/../Documents/...\n"); }
-                        bashScript = File("~/../Documents/fps_analyzer.bat");
-                        if(!bashScript.exists) {
-                            if(debug.value) { writeToDebugFile("Could not find the bash script for deletion.\n"); }
-                            alert("Could not find bash script for deletion! Please delete fps_analyzer.bat if you see it in your Documents folder or script folder!");
-                            return null;
-                        }
-                    }
-                } catch(err) {
-                    alert(err);
-                    if(debug.value) { writeToDebugFile("ERROR CAUGHT: " + err + "\n"); }
-                    return null;
-                }
-            }
-            return bashScript;
-        }
-
         //helper function to createBashScript
         function overwriteToFile(file, contents) {
             file.open("w");
