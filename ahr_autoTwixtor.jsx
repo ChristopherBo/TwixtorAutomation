@@ -1,4 +1,4 @@
-//ahr_autoTwixtor.jsx Version 0.6
+//ahr_autoTwixtor.jsx Version 0.61
 // Copyright (c) 2022 AHRevolvers. All rights reserved.
 //
 // This script will automatically setup twixtor for a user based on this article,
@@ -45,7 +45,7 @@ threshold = 0.7;
 
     var ahr_autoTwixtor = new Object();	// Store globals in an object
 	ahr_autoTwixtor.scriptName = "ahr_autoTwixtor";
-	ahr_autoTwixtor.scriptTitle = ahr_autoTwixtor.scriptName + "v0.6";
+	ahr_autoTwixtor.scriptTitle = ahr_autoTwixtor.scriptName + "v0.61";
 	
 	// Check that a project exists
 	if (app.project === null) {
@@ -78,11 +78,11 @@ threshold = 0.7;
     //////////////////////////////////////////
     scriptBuildUI(thisObj)
     function scriptBuildUI(thisObj) {
-        var win = (thisObj instanceof Panel) ? thisObj : new Window('palette', "AHRevolver's Auto Twixtor Script v0.6", undefined, {
+        var win = (thisObj instanceof Panel) ? thisObj : new Window('palette', "AHRevolver's Auto Twixtor Script v0.61", undefined, {
             resizeable: true
         });
         win.spacing = 0;
-        // var mainWindow = new Window("palette", "AHRevolver's Auto Twixtor Script v0.6", undefined);
+        // var mainWindow = new Window("palette", "AHRevolver's Auto Twixtor Script v0.61", undefined);
         win.orientation = "column";
 
         var mainGroup = win.add("group", undefined, "mainGroup");
