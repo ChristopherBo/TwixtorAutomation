@@ -558,6 +558,7 @@ threshold = 0.7;
 
             //delete fps file now that we're done with it
             fpsFile.remove();
+            bashScript.remove();
 
             if(debug.value) { writeToDebugFile("Completed pythonFPSDetector on " + comp.name + ".\nSplits: " + splits.toString() + "\nThresholds: " + thresholds.toString() + "\n"); }
             if(sendThreshold) {
@@ -657,7 +658,6 @@ threshold = 0.7;
                     if(debug.value) { writeToDebugFile("ERROR CAUGHT: " + err + "\n"); }
                     return;
                 }
-                
             }
             return bashScript;
         }
