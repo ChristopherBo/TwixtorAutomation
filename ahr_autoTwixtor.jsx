@@ -503,31 +503,8 @@ threshold = 0.7;
             }
             if(debug.value) { writeToDebugFile("Creating bash script...\n"); }
             var batPath = String(scriptPath.fullName) + "/fps_analyzer.bat";
-            var bashScript = File(batPath);
-            if (!bashScript.exists) {
-                bashScript = new File(batPath); // Create the bat file (actually sh file) if not existing
-                if(bashScript.exists == false) {
-                    //if the file wasnt able to be created make it in places we know SHOULD work, aka documents
-                    if(debug.value) { writeToDebugFile("Bash script location " + scriptPath.fsName.toString() + " failed. Trying ~/Documents/...\n"); }
-                    try {
-                        bashScript = new File("~/Documents/"+ "/fps_analyzer.bat"); //TODO: if correct this is causing a file explorer window to popup at the location. fix it!
-                        if(bashScript.exists == false) {
-                            if(debug.value) { writeToDebugFile("Bash script location ~/Documents/ failed. Trying ~/../Documents/...\n"); }
-                            bashScript = new File("~/../Documents/"+ "/fps_analyzer.bat");
-                            if(bashScript.exists == false) {
-                                if(debug.value) { writeToDebugFile("All bash script locations failed. Exiting...\n"); }
-                                alert("ERROR: pythonFPSDetector could not create bash script file! Falling back to Extendscript...");
-                                return splitScene(comp, layer);
-                            }
-                        }
-                    } catch(err) {
-                        alert(err);
-                        if(debug.value) { writeToDebugFile("ERROR CAUGHT: " + err + "\n"); }
-                        return;
-                    }
-                    
-                }
-            }
+            var bashScript = createBashScript(batPath); //create bash script
+
             //scriptPath.fullName = absolute reference from beginning
             //bashScript.lineFeed = "Unix"; 
             bashScript.encoding = "UTF-8";
@@ -639,6 +616,57 @@ threshold = 0.7;
                 layerNames.push(comp.layers[i].name);
             }
             return layerNames;
+        }
+
+        //creates the bash file
+        function createBashScript(batPath) {
+            var scriptFile = new File($.fileName); //references this file
+            var scriptPath = scriptFile.parent; // leads to C:\Users\test\Documents\ae scripting
+            var bashScript = File(batPath);
+            if(!bashScript.exists) {
+                //alert("Creating file!");
+                bashScript = new File(batPath);
+            }
+            overwriteToFile(bashScript, ""); //for some reason i need to write to this or it wont create the script
+
+            //if the file wasnt able to be created make it in places we know SHOULD work, aka documents
+            //this contingency is meant to cover dockable as files cant be created or executed in program files
+            if(!bashScript.exists) {
+                if(debug.value) { writeToDebugFile("Bash script location " + scriptPath.fsName.toString() + " failed. Trying ~/Documents/...\n"); }
+                try {
+                    bashScript = File("~/Documents/fps_analyzer.bat"); //TODO: if correct this is causing a file explorer window to popup at the location. fix it!
+                    if(!bashScript.exists) {
+                        bashScript = new File(batPath);
+                    }
+                    overwriteToFile(bashScript, "");
+                    if(!bashScript.exists) {
+                        if(debug.value) { writeToDebugFile("Bash script location ~/Documents/ failed. Trying ~/../Documents/...\n"); }
+                        bashScript = File("~/../Documents/fps_analyzer.bat");
+                        if(!bashScript.exists) {
+                            bashScript = new File(batPath);
+                        }
+                        overwriteToFile(bashScript, "");
+                        if(!bashScript.exists) {
+                            if(debug.value) { writeToDebugFile("All bash script locations failed. Exiting...\n"); }
+                            alert("ERROR: pythonFPSDetector could not create bash script file! Falling back to Extendscript...");
+                            return splitScene(comp, layer);
+                        }
+                    }
+                } catch(err) {
+                    alert(err);
+                    if(debug.value) { writeToDebugFile("ERROR CAUGHT: " + err + "\n"); }
+                    return;
+                }
+                
+            }
+            return bashScript;
+        }
+
+        //helper function to createBashScript
+        function overwriteToFile(file, contents) {
+            file.open("w");
+            file.write(contents);
+            file.close();
         }
 
         //finds a layer in a comp based on it's name
