@@ -17,14 +17,13 @@
 // - undo works in 1 button for entire script actions instead of 1 by 1
 // - make precomp duration same as clip duration
 // - 3c works
+// - does not close on use
 //
 //Todo:
 // - progress bar
-// - make it dockable
-// - add an advanced options window connected to a preferences.txt file
+// - add an advanced options window that writes into this file on setup
 //      - make it not close on use
 //      - changeable default fps from 23.976 to whatever user wants
-// - install dependencies once in a different bash script for faster analysis
 //
 //Legal stuff:
 // Permission to use, copy, modify, and/or distribute this software for any
@@ -38,6 +37,10 @@
 
 
 //GLOBALS/PREFERENCES
+closeOnUse = false;
+constantFPS = 23.976;
+threshold = 0.7;
+
 (function ahr_autoTwixtor(thisObj) {
 
     var ahr_autoTwixtor = new Object();	// Store globals in an object
@@ -466,16 +469,22 @@
             var scriptPath = scriptFile.parent; // leads to C:\Users\test\Documents\ae scripting
             if(scriptPath.getFiles("*.exe").length <= 0) {
                 //check documents for it
-                if(debug.value) { writeToDebugFile("Script path of " + scriptPath.fsName.toString() + " failed. Testing ~/Documents/...\n"); }
-                scriptPath = "~/Documents/";
-                if(scriptPath.getFiles("*.exe").length <= 0) {
-                    if(debug.value) { writeToDebugFile("Script path of ~/Documents/ failed. Testing ~/../Documents/...\n"); }
-                    scriptPath = "~/../Documents/";
+                if(debug.value) { writeToDebugFile("EXE path of " + scriptPath.fsName.toString() + " failed. Testing ~/Documents/...\n"); }
+                try{
+                    scriptPath = new Folder("~/Documents/");
                     if(scriptPath.getFiles("*.exe").length <= 0) {
-                        if(debug.value) { writeToDebugFile("All script paths failed. Exiting...\n"); }
-                        alert("Error: fps_detector.exe needs to exist in the same folder as this script or in Documents!");
-                        return;
+                        if(debug.value) { writeToDebugFile("EXE path of ~/Documents/ failed. Testing ~/../Documents/...\n"); }
+                        scriptPath = new Folder("~/../Documents/");
+                        if(scriptPath.getFiles("*.exe").length <= 0) {
+                            if(debug.value) { writeToDebugFile("All exe paths failed. Exiting...\n"); }
+                            alert("Error: fps_detector.exe needs to exist in the same folder as this script or in Documents!");
+                            return;
+                        }
                     }
+                } catch(err) {
+                    if(debug.value) { writeToDebugFile("ERROR CAUGHT: " + err + "\n"); }
+                    alert(err);
+                    return;
                 }
             }
             if(debug.value) { writeToDebugFile("Script path set to: " + scriptPath.fsName.toString() + ".\n"); }
@@ -497,6 +506,20 @@
             var bashScript = File(batPath);
             if (!bashScript.exists) {
                 bashScript = new File(batPath); // Create the bat file (actually sh file) if not existing
+                if(bashScript.exists == false) {
+                    //if the file wasnt able to be created make it in places we know SHOULD work, aka documents
+                    if(debug.value) { writeToDebugFile("Bash script location " + scriptPath.fsName.toString() + " failed. Trying ~/Documents/...\n"); }
+                    bashScript = new File("~/Documents/");
+                    if(bashScript.exists == false) {
+                        if(debug.value) { writeToDebugFile("Bash script location ~/Documents/ failed. Trying ~/../Documents/...\n"); }
+                        bashScript = new File("~/../Documents/");
+                        if(bashScript.exists == false) {
+                            if(debug.value) { writeToDebugFile("All bash script locations failed. Exiting...\n"); }
+                            alert("ERROR: pythonFPSDetector could not create bash script file!");
+                            return;
+                        }
+                    }
+                }
             }
             //scriptPath.fullName = absolute reference from beginning
             //bashScript.lineFeed = "Unix"; 
