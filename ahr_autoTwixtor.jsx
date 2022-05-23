@@ -468,7 +468,7 @@ threshold = 0.7;
             var scriptFile = new File($.fileName); //references this file
             var scriptPath = scriptFile.parent; // leads to C:\Users\test\Documents\ae scripting
             if(scriptPath.getFiles("*.exe").length <= 0) {
-                //check documents for it
+                //fallback on documents for it, which is hopefully a temporary measure
                 if(debug.value) { writeToDebugFile("EXE path of " + scriptPath.fsName.toString() + " failed. Testing ~/Documents/...\n"); }
                 try{
                     scriptPath = new Folder("~/Documents/");
@@ -487,7 +487,7 @@ threshold = 0.7;
                     return;
                 }
             }
-            if(debug.value) { writeToDebugFile("Script path set to: " + scriptPath.fsName.toString() + ".\n"); }
+            if(debug.value) { writeToDebugFile("EXE path set to: " + scriptPath.fsName.toString() + ".\n"); }
 
             var fpsFile = getRGBFile();
             if(!fpsFile.exists) {
@@ -501,7 +501,7 @@ threshold = 0.7;
                 alert("Error: Python FPS Detector only works with Windows. Falling back to Extendscript...");
                 return splitScene(comp, layer);
             }
-            if(debug.value) { writeToDebugFile("Creating and filling in bash script...\n"); }
+            if(debug.value) { writeToDebugFile("Creating bash script...\n"); }
             var batPath = String(scriptPath.fullName) + "/fps_analyzer.bat";
             var bashScript = File(batPath);
             if (!bashScript.exists) {
@@ -509,16 +509,23 @@ threshold = 0.7;
                 if(bashScript.exists == false) {
                     //if the file wasnt able to be created make it in places we know SHOULD work, aka documents
                     if(debug.value) { writeToDebugFile("Bash script location " + scriptPath.fsName.toString() + " failed. Trying ~/Documents/...\n"); }
-                    bashScript = new File("~/Documents/");
-                    if(bashScript.exists == false) {
-                        if(debug.value) { writeToDebugFile("Bash script location ~/Documents/ failed. Trying ~/../Documents/...\n"); }
-                        bashScript = new File("~/../Documents/");
+                    try {
+                        bashScript = new File("~/Documents/"+ "/fps_analyzer.bat"); //TODO: if correct this is causing a file explorer window to popup at the location. fix it!
                         if(bashScript.exists == false) {
-                            if(debug.value) { writeToDebugFile("All bash script locations failed. Exiting...\n"); }
-                            alert("ERROR: pythonFPSDetector could not create bash script file!");
-                            return;
+                            if(debug.value) { writeToDebugFile("Bash script location ~/Documents/ failed. Trying ~/../Documents/...\n"); }
+                            bashScript = new File("~/../Documents/"+ "/fps_analyzer.bat");
+                            if(bashScript.exists == false) {
+                                if(debug.value) { writeToDebugFile("All bash script locations failed. Exiting...\n"); }
+                                alert("ERROR: pythonFPSDetector could not create bash script file! Falling back to Extendscript...");
+                                return splitScene(comp, layer);
+                            }
                         }
+                    } catch(err) {
+                        alert(err);
+                        if(debug.value) { writeToDebugFile("ERROR CAUGHT: " + err + "\n"); }
+                        return;
                     }
+                    
                 }
             }
             //scriptPath.fullName = absolute reference from beginning
@@ -533,6 +540,7 @@ threshold = 0.7;
                                 "\"" + String(scriptPath.fsName) + "\\fps_detector.exe\" \"" + String(layerPath) + "\"\n",
                                 "echo Finished! This program will close in 5 seconds. You can also close it with Ctrl + C.\n",
                                 "timeout 6\n"];
+            if(debug.value) { writeToDebugFile("Filling in bash script...\n"); }
             for(var i=0; i <= bashScriptContents.length; i++) {
                 bashScript.write(bashScriptContents[i]);
             }
