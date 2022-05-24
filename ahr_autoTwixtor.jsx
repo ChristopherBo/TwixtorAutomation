@@ -202,7 +202,10 @@ threshold = 1.7;
         // mainWindow.show();
 
         setupButton.onClick = function() {
-            //win.close();
+            if(closeOnUseCheck.value) {
+                win.close();
+            }
+            
             if(debug.value) { writeToDebugFile("Starting...\n"); }
             //alert("gogogo");
 
