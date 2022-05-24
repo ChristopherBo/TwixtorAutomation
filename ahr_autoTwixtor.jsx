@@ -38,7 +38,7 @@
 
 //GLOBALS/PREFERENCES
 closeOnUse = false;
-constantFPS = 23.976;
+animatedOn = 2;
 threshold = 0.7;
 
 (function ahr_autoTwixtor(thisObj) {
@@ -155,7 +155,7 @@ threshold = 0.7;
         // var inputFPS = inputFPSGroup.add("edittext", undefined, "");
         // inputFPS.preferredSize.width = 45;
         // inputFPS.preferredSize.height = 17;
-        var constantFPS = groupPanel.add("radiobutton", undefined, "Constant Framerate (3a):");
+        var constantFPS = groupPanel.add("radiobutton", undefined, "Constant Framerate (3a)");
         constantFPS.value = true;
         if(parseFloat(app.version.substring(0,4)) >= 22.3) { //only for ae v22.3 and above
             var cutFPS = groupPanel.add("radiobutton", undefined, "Framerate occasionally changes (3b)");
@@ -172,8 +172,30 @@ threshold = 0.7;
             var autoCut = groupOptions.add("checkbox", undefined, "Scene Detection (multiple shots in each layer)");
             autoCut.value = false;
         }
+
+        //3a framerate
+        var ThreeAFramerateGroup = groupOptions.add("group", undefined, "ThreeAFramerateGroup");
+        ThreeAFramerateGroup.orientation = "row";
+        var ThreeAText = ThreeAFramerateGroup.add("statictext", undefined, "3a- Animated every:");
+        var animatedOn = ThreeAFramerateGroup.add("edittext", undefined, "2");
+        animatedOn.preferredSize.width = 17;
+        animatedOn.preferredSize.height = 17;
+        var ThreeAText = ThreeAFramerateGroup.add("statictext", undefined, "frames");
+
+        //threshold
+        var thresholdGroup = groupOptions.add("group", undefined, "thresholdGroup");
+        thresholdGroup.orientation = "row";
+        var thresholdText = thresholdGroup.add("statictext", undefined, "FPS Detection Threshold:");
+        var threshold = thresholdGroup.add("edittext", undefined, "0.7");
+        threshold.preferredSize.width = 17;
+        threshold.preferredSize.height = 17;
+        
+        //misc options
+        var closeOnUse = groupOptions.add("checkbox", undefined, "Close on Use?");
+        closeOnUse.value = false;
         var debug = groupOptions.add("checkbox", undefined, "Debug Program");
         debug.value = false;
+
         var setupButton = win.add("button", undefined, "Go!");
 
 
