@@ -35,11 +35,10 @@
 // arising in any way from the use of this script.
 //
 
-
 //GLOBALS/PREFERENCES
-closeOnUse = false;
-animatedOn = 2;
-threshold = 0.7;
+closeOnUse = true;
+animatedOn = 5;
+threshold = 1.7;
 
 (function ahr_autoTwixtor(thisObj) {
 
@@ -176,23 +175,23 @@ threshold = 0.7;
         //3a framerate
         var ThreeAFramerateGroup = groupOptions.add("group", undefined, "ThreeAFramerateGroup");
         ThreeAFramerateGroup.orientation = "row";
-        var ThreeAText = ThreeAFramerateGroup.add("statictext", undefined, "3a- Animated every:");
-        var animatedOn = ThreeAFramerateGroup.add("edittext", undefined, "2");
-        animatedOn.preferredSize.width = 17;
-        animatedOn.preferredSize.height = 17;
+        var ThreeAText = ThreeAFramerateGroup.add("statictext", undefined, "3a: Animated every:");
+        var everyXFrames = ThreeAFramerateGroup.add("edittext", undefined, animatedOn);
+        everyXFrames.preferredSize.width = 17;
+        everyXFrames.preferredSize.height = 17;
         var ThreeAText = ThreeAFramerateGroup.add("statictext", undefined, "frames");
 
         //threshold
         var thresholdGroup = groupOptions.add("group", undefined, "thresholdGroup");
         thresholdGroup.orientation = "row";
         var thresholdText = thresholdGroup.add("statictext", undefined, "FPS Detection Threshold:");
-        var threshold = thresholdGroup.add("edittext", undefined, "0.7");
-        threshold.preferredSize.width = 17;
-        threshold.preferredSize.height = 17;
+        var thresholdValue = thresholdGroup.add("edittext", undefined, threshold.toString());
+        thresholdValue.preferredSize.width = 25;
+        thresholdValue.preferredSize.height = 17;
         
         //misc options
-        var closeOnUse = groupOptions.add("checkbox", undefined, "Close on Use?");
-        closeOnUse.value = false;
+        var closeOnUseCheck = groupOptions.add("checkbox", undefined, "Close on Use?");
+        closeOnUseCheck.value = closeOnUse;
         var debug = groupOptions.add("checkbox", undefined, "Debug Program");
         debug.value = false;
 
