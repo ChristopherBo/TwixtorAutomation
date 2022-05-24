@@ -303,10 +303,11 @@ threshold = 1.7;
         function twixConstant(precomp, fps) {
             if(debug.value) { writeToDebugFile("twixConstant: starting...\n"); }
             //0 fps == default from GUI
-            //if gui is nothing set to layer 1's fps
+            //if gui is nothing set to preferences, otherwiselayer 1's fps
             //if layer 1 doesnt have fps set it to 23.976
-            // if(fps == 0) { fps = inputFPS.value } old code relating to manual fps input
-            if((fps == undefined || fps == 0) && precomp.layers[1].frameRate != undefined) { fps = precomp.layers[1].frameRate }
+            // if(fps == 0) { fps = inputFPS.value } old code relating to manual fps input 
+            if((fps == undefined || fps == 0) && precomp.layers[1].frameRate != undefined) { fps = everyXFrames.value }
+            if(fps == 0 || fps == undefined) { fps = precomp.layers[1].frameRate }
             if(fps == 0 || fps == undefined) { fps = 23.976 }
 
             //auto detect fps
