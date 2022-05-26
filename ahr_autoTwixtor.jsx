@@ -37,8 +37,8 @@
 
 //GLOBALS/PREFERENCES
 closeOnUse = true;
-animatedOn = 5;
-threshold = 1.7;
+animatedOn = 2;
+//threshold = 0.7;
 
 (function ahr_autoTwixtor(thisObj) {
 
@@ -283,6 +283,7 @@ threshold = 1.7;
                     twixConstant(precomp, 0);
                 } else if(cutFPS.value == true) { //3b
                     if(debug.value) { writeToDebugFile("Twix method 3b chosen.\n"); }
+                    twixCut(precomp);
                     //need to do this sometime
                 } else if(variableFPS.value == true) { //3c
                     if(debug.value) { writeToDebugFile("Twix method 3c chosen.\n"); }
@@ -292,8 +293,6 @@ threshold = 1.7;
                     precompLayer.timeRemap.setValueAtTime(precompLayer.inPoint + (keyframes/comp.frameRate), (keyframes - 1)/precomp.frameRate);
                     precompLayer.timeRemap.removeKey(precompLayer.timeRemap.nearestKeyIndex(precompLayer.outPoint));
                     precompLayer.outPoint = precompLayer.inPoint + ((keyframes + 1)/comp.frameRate);
-                } else if(detectFPS.value == true) { //autodetect one of the top choices
-
                 }
                 if(debug.value) { writeToDebugFile("Finished twixtoring precomp " + precomp.name + "\n"); }
             }
@@ -308,7 +307,6 @@ threshold = 1.7;
             //0 fps == default from GUI
             //if gui is nothing set to preferences, otherwiselayer 1's fps
             //if layer 1 doesnt have fps set it to 23.976
-            // if(fps == 0) { fps = inputFPS.value } old code relating to manual fps input 
             if((fps == undefined || fps == 0) && precomp.layers[1].frameRate != undefined) { fps = everyXFrames.value }
             if(fps == 0 || fps == undefined) { fps = precomp.layers[1].frameRate }
             if(fps == 0 || fps == undefined) { fps = 23.976 }
@@ -378,6 +376,24 @@ threshold = 1.7;
             }
             if(debug.value) { writeToDebugFile("detectFramerate: Complete. FPS:" + fps.toString() + "\n"); }
             return fps;
+        }
+
+        //NOT TESTED/UNFINISHED function
+        //If you want to contribute and you have AE v22.3+, test and/or fix this
+        function twixCut(precomp) {
+            if(debug.value) { writeToDebugFile("twixCut: starting...\n"); }
+            //I wanted to add scene detection via https://ae-scripting.docsforadobe.dev/layers/layer.html?highlight=Scene#layer-dosceneeditdetection
+            //but it only exists in ae v22.3+
+            var layer = precomp.layer[1];
+
+            //splits and precomps at edit points
+            layer.doSceneEditDetection(3); //3 may have to be replaced with SceneEditDetectionMode.SPLIT_PRECOMP
+
+            //go through each layer and apply 3a to them
+            var layers = precomp.layers;
+            for(var i=0; i < layers.length; i++) {
+                twixConstant(layers[i]);
+            }
         }
 
         //cuts a clip by trying to detect where anims end and start
