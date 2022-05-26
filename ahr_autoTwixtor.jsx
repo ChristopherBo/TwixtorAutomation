@@ -44,32 +44,6 @@ animatedOn = 2;
     var ahr_autoTwixtor = new Object();	// Store globals in an object
 	ahr_autoTwixtor.scriptName = "ahr_autoTwixtor";
 	ahr_autoTwixtor.scriptTitle = ahr_autoTwixtor.scriptName + "v0.7";
-	
-	// Check that a project exists
-	if (app.project === null) {
-        alert("Project does not exist!");
-		return false;
-    }
-
-    // Check that an active comp exists
-	if (app.project.activeItem === null) {
-        alert("There is no active comp!");
-		return false;
-    }
-
-    function checkForInstalledEffect(){
-        var effects = app.effects;
-        for (var i = 0; i < effects.length; i++){
-            if (effects[i].displayName == "Twixtor Pro") {
-                return true;
-            }
-        }
-        return false;
-    }
-    if(checkForInstalledEffect() == false) {
-        alert("Twixtor is not installed!");
-        return false;
-    }
     
     //////////////////////////////////////////
     //MAIN UI
@@ -115,10 +89,31 @@ animatedOn = 2;
         helpText.add("statictext", undefined, "", {name: "helpText"}); 
         helpText.preferredSize.width = 400;
 
-        var helpButton = mainGroup.add("button", undefined, "?");
+        var topButtonGroup = mainGroup.add("group", undefined, "");
+        topButtonGroup.orientation = "row";
+
+        var helpButton = topButtonGroup.add("button", undefined, "?");
         helpButton.onClick = function() {
             helpWindow.center();
             helpWindow.show();
+        }
+
+        var refreshButton = topButtonGroup.add("button", undefined, "Refresh Layer Selection");
+        refreshButton.onClick = function() {
+            //reset lists
+            inLayer.removeAll();
+            outLayer.removeAll();
+
+            //replace layer names from current comp
+            var newNames = getAllCompLayerNames(app.project.activeItem);
+            for(var i=0; i <= newNames.length; i++) {
+                inLayer.add("item", newNames[i]);
+                outLayer.add("item", newNames[i]);
+            }
+
+            //make selection something real, otherwise it'll be blank/not one of the options
+            inLayer.selection = 0;
+            outLayer.selection = 0;
         }
 
         var groupOne = mainGroup.add("group");
@@ -199,12 +194,34 @@ animatedOn = 2;
         // mainWindow.show();
 
         setupButton.onClick = function() {
+            //base checks before starting
+            if(debug.value) { writeToDebugFile("Making sure there's an active project...\n"); }
+            // Check that a project exists
+            if (app.project === null) {
+                alert("Project does not exist!");
+                return false;
+            }
+
+            if(debug.value) { writeToDebugFile("Making sure there's an active comp...\n"); }
+            // Check that an active comp exists
+            if (app.project.activeItem === null) {
+                alert("There is no active comp!");
+                return false;
+            }
+
+            if(debug.value) { writeToDebugFile("Making sure Twixtor's installed...\n"); }
+            // Check if twixtor's installed
+            if(checkForTwixtor() == false) {
+                alert("Twixtor is not installed!");
+                return false;
+            }
+
+
             if(closeOnUseCheck.value) {
                 win.close();
             }
             
             if(debug.value) { writeToDebugFile("Starting...\n"); }
-            //alert("gogogo");
 
             app.beginUndoGroup("Auto Twixtor Script");
 
@@ -668,6 +685,11 @@ animatedOn = 2;
         //grabs all the names of the given comp and returns them in a list.
         function getAllCompLayerNames(comp) {
             var layerNames = [];
+            if(comp == null || comp == undefined) {
+                return layerNames;
+            } else if(!(comp instanceof CompItem)) { //if its a layer or smt else go up to the containing comp
+                comp = comp.containingComp;
+            }
             //start at 1 bc comp.layers starts at 1
             for(var i=1; i <= comp.layers.length; i++) {
                 layerNames.push(comp.layers[i].name);
@@ -745,6 +767,17 @@ animatedOn = 2;
                 }
             }
             return null;
+        }
+
+        //checks if Twixtor is installed
+        function checkForTwixtor(){
+            var effects = app.effects;
+            for (var i = 0; i < effects.length; i++){
+                if (effects[i].displayName == "Twixtor Pro") {
+                    return true;
+                }
+            }
+            return false;
         }
 
         win.onResizing = win.onResize = function() {
