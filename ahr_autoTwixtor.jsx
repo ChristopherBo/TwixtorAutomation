@@ -230,14 +230,16 @@ animatedOn = 2;
                 }
             }
 
-            //if there is multiple shots detect and cut
-            if(autoCut.value == true) {
-                //https://ae-scripting.docsforadobe.dev/layers/layer.html?highlight=Scene#layer-dosceneeditdetection
-                //UNTESTED since it only exists in ae v22.3+
-                var layer = precomp.layer[1];
+            if(parseFloat(app.version.substring(0,4)) >= 22.3) { //only for ae v22.3 and above
+                //if there is multiple shots detect and cut
+                if(autoCut.value == true) {
+                    //https://ae-scripting.docsforadobe.dev/layers/layer.html?highlight=Scene#layer-dosceneeditdetection
+                    //UNTESTED since it only exists in ae v22.3+
+                    var layer = precomp.layer[1];
 
-                //splits clip when it detects a diff clip
-                layer.doSceneEditDetection(2); //2 may have to be replaced with SceneEditDetectionMode.SPLIT
+                    //splits clip when it detects a diff clip
+                    layer.doSceneEditDetection(2); //2 may have to be replaced with SceneEditDetectionMode.SPLIT
+                }
             }
 
             //precomp range of layers
@@ -282,10 +284,6 @@ animatedOn = 2;
                 if(constantFPS.value == true) { //3a
                     if(debug.value) { writeToDebugFile("Twix method 3a chosen.\n"); }
                     twixConstant(precomp, 0);
-                } else if(cutFPS.value == true) { //3b
-                    if(debug.value) { writeToDebugFile("Twix method 3b chosen.\n"); }
-                    twixCut(precomp);
-                    //need to do this sometime
                 } else if(variableFPS.value == true) { //3c
                     if(debug.value) { writeToDebugFile("Twix method 3c chosen.\n"); }
                     var keyframes = twixVariable(precomp);
@@ -294,6 +292,12 @@ animatedOn = 2;
                     precompLayer.timeRemap.setValueAtTime(precompLayer.inPoint + (keyframes/comp.frameRate), (keyframes - 1)/precomp.frameRate);
                     precompLayer.timeRemap.removeKey(precompLayer.timeRemap.nearestKeyIndex(precompLayer.outPoint));
                     precompLayer.outPoint = precompLayer.inPoint + ((keyframes + 1)/comp.frameRate);
+                }
+                if(parseFloat(app.version.substring(0,4)) >= 22.3) { //only for ae v22.3 and above
+                    if(cutFPS.value == true) { //3b
+                        if(debug.value) { writeToDebugFile("Twix method 3b chosen.\n"); }
+                        twixCut(precomp);
+                    }
                 }
                 if(debug.value) { writeToDebugFile("Finished twixtoring precomp " + precomp.name + "\n"); }
             }
