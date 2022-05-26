@@ -164,7 +164,6 @@ animatedOn = 2;
         variableFPS.value = false;
         var detectFPS = groupPanel.add("checkbox", undefined, "Detect framerate(s) of clips (experimental)");
         detectFPS.value = true;
-        var threeBText = groupPanel.add("statictext", undefined, "Note: 3b will auto-detect framerate.");
 
         //experimental features and misc buttons
         if(parseFloat(app.version.substring(0,4)) >= 22.3) { //only for ae v22.3 and above
@@ -175,7 +174,7 @@ animatedOn = 2;
         //3a framerate
         var ThreeAFramerateGroup = groupOptions.add("group", undefined, "ThreeAFramerateGroup");
         ThreeAFramerateGroup.orientation = "row";
-        var ThreeAText = ThreeAFramerateGroup.add("statictext", undefined, "3a: Animated every:");
+        var ThreeAText = ThreeAFramerateGroup.add("statictext", undefined, "3a: New frame every:");
         var everyXFrames = ThreeAFramerateGroup.add("edittext", undefined, animatedOn);
         everyXFrames.preferredSize.width = 17;
         everyXFrames.preferredSize.height = 17;
@@ -233,10 +232,14 @@ animatedOn = 2;
                 }
             }
 
-            //if there is scene detection, detect and cut
+            //if there is multiple shots detect and cut
             if(autoCut.value == true) {
-                //scene detection stuff here
-                //probably python?
+                //https://ae-scripting.docsforadobe.dev/layers/layer.html?highlight=Scene#layer-dosceneeditdetection
+                //UNTESTED since it only exists in ae v22.3+
+                var layer = precomp.layer[1];
+
+                //splits clip when it detects a diff clip
+                layer.doSceneEditDetection(2); //2 may have to be replaced with SceneEditDetectionMode.SPLIT
             }
 
             //precomp range of layers
