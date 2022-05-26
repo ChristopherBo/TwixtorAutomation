@@ -182,12 +182,12 @@ threshold = 1.7;
         var ThreeAText = ThreeAFramerateGroup.add("statictext", undefined, "frames");
 
         //threshold
-        var thresholdGroup = groupOptions.add("group", undefined, "thresholdGroup");
-        thresholdGroup.orientation = "row";
-        var thresholdText = thresholdGroup.add("statictext", undefined, "FPS Detection Threshold:");
-        var thresholdValue = thresholdGroup.add("edittext", undefined, threshold.toString());
-        thresholdValue.preferredSize.width = 25;
-        thresholdValue.preferredSize.height = 17;
+        // var thresholdGroup = groupOptions.add("group", undefined, "thresholdGroup");
+        // thresholdGroup.orientation = "row";
+        // var thresholdText = thresholdGroup.add("statictext", undefined, "FPS Detection Threshold:");
+        // var thresholdValue = thresholdGroup.add("edittext", undefined, threshold.toString());
+        // thresholdValue.preferredSize.width = 25;
+        // thresholdValue.preferredSize.height = 17;
         
         //misc options
         var closeOnUseCheck = groupOptions.add("checkbox", undefined, "Close on Use?");
