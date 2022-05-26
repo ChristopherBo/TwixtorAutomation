@@ -1,4 +1,4 @@
-//ahr_autoTwixtor.jsx Version 0.61
+//ahr_autoTwixtor.jsx Version 0.7
 // Copyright (c) 2022 AHRevolvers. All rights reserved.
 //
 // This script will automatically setup twixtor for a user based on this article,
@@ -38,13 +38,12 @@
 //GLOBALS/PREFERENCES
 closeOnUse = true;
 animatedOn = 2;
-//threshold = 0.7;
 
 (function ahr_autoTwixtor(thisObj) {
 
     var ahr_autoTwixtor = new Object();	// Store globals in an object
 	ahr_autoTwixtor.scriptName = "ahr_autoTwixtor";
-	ahr_autoTwixtor.scriptTitle = ahr_autoTwixtor.scriptName + "v0.61";
+	ahr_autoTwixtor.scriptTitle = ahr_autoTwixtor.scriptName + "v0.7";
 	
 	// Check that a project exists
 	if (app.project === null) {
@@ -77,11 +76,10 @@ animatedOn = 2;
     //////////////////////////////////////////
     scriptBuildUI(thisObj)
     function scriptBuildUI(thisObj) {
-        var win = (thisObj instanceof Panel) ? thisObj : new Window('palette', "AHRevolver's Auto Twixtor Script v0.61", undefined, {
+        var win = (thisObj instanceof Panel) ? thisObj : new Window('palette', "AHRevolver's Auto Twixtor Script v0.7", undefined, {
             resizeable: true
         });
         win.spacing = 0;
-        // var mainWindow = new Window("palette", "AHRevolver's Auto Twixtor Script v0.61", undefined);
         win.orientation = "column";
 
         var mainGroup = win.add("group", undefined, "mainGroup");
@@ -148,7 +146,7 @@ animatedOn = 2;
         var groupOptions = mainGroup.add("group", undefined, "groupOptions");
         groupOptions.orientation = "column";
         var groupPanel = groupOptions.add("panel", undefined, "Twixtor Settings");
-        // archived manual fps input, radio buttons dont work with cleaner design of it 
+        // archived manual fps input, bugs out the radio buttons unfortunately
         // var inputFPSGroup = groupPanel.add("group", undefined, "inputFPSGroup");
         // inputFPSGroup.orientation = "row";
         // var inputFPS = inputFPSGroup.add("edittext", undefined, "");
@@ -157,17 +155,17 @@ animatedOn = 2;
         var constantFPS = groupPanel.add("radiobutton", undefined, "Constant Framerate (3a)");
         constantFPS.value = true;
         if(parseFloat(app.version.substring(0,4)) >= 22.3) { //only for ae v22.3 and above
-            var cutFPS = groupPanel.add("radiobutton", undefined, "Framerate occasionally changes (3b)");
+            var cutFPS = groupPanel.add("radiobutton", undefined, "Framerate occasionally changes (3b) (UNTESTED)");
             cutFPS.value = false;
         }
         var variableFPS = groupPanel.add("radiobutton", undefined, "Framerate changes often (3c)");
         variableFPS.value = false;
-        var detectFPS = groupPanel.add("checkbox", undefined, "Detect framerate(s) of clips (experimental)");
+        var detectFPS = groupPanel.add("checkbox", undefined, "Detect framerate(s) of clips");
         detectFPS.value = true;
 
         //experimental features and misc buttons
         if(parseFloat(app.version.substring(0,4)) >= 22.3) { //only for ae v22.3 and above
-            var autoCut = groupOptions.add("checkbox", undefined, "Scene Detection (multiple shots in each layer)");
+            var autoCut = groupOptions.add("checkbox", undefined, "Scene Detection (multiple shots in each layer) (UNTESTED)");
             autoCut.value = false;
         }
 
@@ -180,7 +178,7 @@ animatedOn = 2;
         everyXFrames.preferredSize.height = 17;
         var ThreeAText = ThreeAFramerateGroup.add("statictext", undefined, "frames");
 
-        //threshold
+        //threshold- archived for now
         // var thresholdGroup = groupOptions.add("group", undefined, "thresholdGroup");
         // thresholdGroup.orientation = "row";
         // var thresholdText = thresholdGroup.add("statictext", undefined, "FPS Detection Threshold:");
