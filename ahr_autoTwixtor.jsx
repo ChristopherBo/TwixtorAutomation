@@ -21,6 +21,7 @@
 //GLOBALS/PREFERENCES
 closeOnUse = true;
 animatedOn = 2;
+sendToRenderQueue = false;
 
 (function ahr_autoTwixtor(thisObj) {
 
@@ -169,6 +170,8 @@ animatedOn = 2;
         // thresholdValue.preferredSize.height = 17;
         
         //misc options
+        var sendToRender = groupOptions.add("checkbox", undefined, "Send Precomps to Render Queue?");
+        sendToRender.value = sendToRenderQueue;
         var closeOnUseCheck = groupOptions.add("checkbox", undefined, "Close on Use?");
         closeOnUseCheck.value = closeOnUse;
         var debug = groupOptions.add("checkbox", undefined, "Debug Program");
@@ -304,6 +307,17 @@ animatedOn = 2;
                     }
                 }
                 if(debug.value) { writeToDebugFile("Finished twixtoring precomp " + precomp.name + "\n"); }
+            }
+            
+            //send all precomps to render queue if requested
+            if(sendToRender.value) {
+                if(debug.value) { writeToDebugFile("Adding all precomps to render queue...\n"); }
+                for(var i=1; i <= twixFolder.numItems; i++) {
+                    precomp = twixFolder.item(i);
+                    precomp.openInViewer(); //make comp active
+                    app.executeCommand(app.findMenuCommandId("Add to Render Queue"));
+                }
+                comp.openInViewer(); //reopen old comp in viewer
             }
             
             if(debug.value) { writeToDebugFile("autoTwixtor complete.\n"); }
