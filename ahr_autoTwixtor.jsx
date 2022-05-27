@@ -5,25 +5,8 @@
 // section 4, steps 3a-3c: https://lolligerjoj.wordpress.com/2016/10/22/twixtor-on-anime-footage-and-ae-workflow-using-twixtor/
 // Find more of these scripts on my channel https://www.youtube.com/c/AHRevolvers
 //
-//Changelog:
-// - figure out how to get a layer's source path
-// - figure out scene detection using python
-// - exec the python file via bash script
-// - screw around with the extendscript detection system
-// - added a gui
-// - check if user has twixtor installed
-// - take in files
-// - rudimentary fps checker implemented
-// - undo works in 1 button for entire script actions instead of 1 by 1
-// - make precomp duration same as clip duration
-// - 3c works
-// - does not close on use
-//
 //Todo:
-// - progress bar
-// - add an advanced options window that writes into this file on setup
-//      - make it not close on use
-//      - changeable default fps from 23.976 to whatever user wants
+// - remove closeOnUse button if docked
 //
 //Legal stuff:
 // Permission to use, copy, modify, and/or distribute this software for any
