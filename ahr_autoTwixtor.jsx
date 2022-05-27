@@ -172,8 +172,8 @@ sendToRenderQueue = false;
         //misc options
         var sendToRender = groupOptions.add("checkbox", undefined, "Send Precomps to Render Queue?");
         sendToRender.value = sendToRenderQueue;
-        var closeOnUseCheck = groupOptions.add("checkbox", undefined, "Close on Use?");
-        closeOnUseCheck.value = closeOnUse;
+        // var closeOnUseCheck = groupOptions.add("checkbox", undefined, "Close on Use?");
+        // closeOnUseCheck.value = closeOnUse;
         var debug = groupOptions.add("checkbox", undefined, "Debug Program");
         debug.value = false;
 
@@ -207,9 +207,9 @@ sendToRenderQueue = false;
             }
 
 
-            if(closeOnUseCheck.value) {
-                win.close();
-            }
+            // if(closeOnUseCheck.value) {
+            //     win.close();
+            // }
             
             if(debug.value) { writeToDebugFile("Starting...\n"); }
 
