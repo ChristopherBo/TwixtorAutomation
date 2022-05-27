@@ -1,4 +1,4 @@
-//ahr_autoTwixtor.jsx Version 0.7
+//ahr_autoTwixtor.jsx Version 0.71
 // Copyright (c) 2022 AHRevolvers. All rights reserved.
 //
 // This script will automatically setup twixtor for a user based on this article,
@@ -27,14 +27,14 @@ sendToRenderQueue = false;
 
     var ahr_autoTwixtor = new Object();	// Store globals in an object
 	ahr_autoTwixtor.scriptName = "ahr_autoTwixtor";
-	ahr_autoTwixtor.scriptTitle = ahr_autoTwixtor.scriptName + "v0.7";
+	ahr_autoTwixtor.scriptTitle = ahr_autoTwixtor.scriptName + "v0.71";
     
     //////////////////////////////////////////
     //MAIN UI
     //////////////////////////////////////////
     scriptBuildUI(thisObj)
     function scriptBuildUI(thisObj) {
-        var win = (thisObj instanceof Panel) ? thisObj : new Window('palette', "AHRevolver's Auto Twixtor Script v0.7", undefined, {
+        var win = (thisObj instanceof Panel) ? thisObj : new Window('palette', "AHRevolver's Auto Twixtor Script v0.71", undefined, {
             resizeable: true
         });
         win.spacing = 0;
@@ -170,7 +170,7 @@ sendToRenderQueue = false;
         // thresholdValue.preferredSize.height = 17;
         
         //misc options
-        var sendToRender = groupOptions.add("checkbox", undefined, "Send Precomps to Render Queue?");
+        var sendToRender = groupOptions.add("checkbox", undefined, "Send Precomps to Render Queue");
         sendToRender.value = sendToRenderQueue;
         // var closeOnUseCheck = groupOptions.add("checkbox", undefined, "Close on Use?");
         // closeOnUseCheck.value = closeOnUse;
@@ -178,10 +178,6 @@ sendToRenderQueue = false;
         debug.value = false;
 
         var setupButton = win.add("button", undefined, "Go!");
-
-
-        // mainWindow.center();
-        // mainWindow.show();
 
         setupButton.onClick = function() {
             //base checks before starting
@@ -375,6 +371,7 @@ sendToRenderQueue = false;
 
             var splits;
 
+            //if OS isn't windows use legacy detector, otherwise use python
             if(File.fs != "Windows") {
                 //forced to use extendscript detector
                 if(debug.value) { writeToDebugFile("detectFramerate: detecting FPS via splitScene...\n"); }
@@ -385,7 +382,6 @@ sendToRenderQueue = false;
                 if(debug.value) { writeToDebugFile("detectFramerate: detecting FPS via pythonFPSDetector...\n"); }
                 splits = pythonFPSDetector(comp, layer, false);
             }
-            
 
             //fps based on averaging differences of all times
             // var random = genRand(0, splits.length-1, 0);
@@ -533,7 +529,6 @@ sendToRenderQueue = false;
             //layer.remove();
         }
 
-        //python FPS detector.
         //returns a list of frames where the scene changes
         //if sendThreshold = true returns a second list with the corresponding thresholds
         function pythonFPSDetector(comp, layer, sendThreshold) {
@@ -733,18 +728,19 @@ sendToRenderQueue = false;
                 if(debug.value) { writeToDebugFile("Bash script location " + scriptPath.fsName.toString() + " failed. Trying ~/Documents/...\n"); }
                 try {
                     bashScript = File("~/Documents/fps_analyzer.bat"); //TODO: if correct this is causing a file explorer window to popup at the location. fix it!
-                    if(!bashScript.exists) {
+                    if(!bashScript.exists) { //if the bash file doesn't exist create it
                         bashScript = new File(batPath);
                     }
-                    overwriteToFile(bashScript, "");
+                    overwriteToFile(bashScript, ""); //need to write to the file to have the script actually create it for some reason
+                    //if it still doesn't exist the script doesn't have perms or the folder doesn't exist. try the next destination
                     if(!bashScript.exists) {
                         if(debug.value) { writeToDebugFile("Bash script location ~/Documents/ failed. Trying ~/../Documents/...\n"); }
                         bashScript = File("~/../Documents/fps_analyzer.bat");
-                        if(!bashScript.exists) {
+                        if(!bashScript.exists) { //if the bash file doesn't exist create it
                             bashScript = new File(batPath);
                         }
                         overwriteToFile(bashScript, "");
-                        if(!bashScript.exists) {
+                        if(!bashScript.exists) { //nothing worked, fallback to legacy motion detection
                             if(debug.value) { writeToDebugFile("All bash script locations failed. Exiting...\n"); }
                             alert("ERROR: pythonFPSDetector could not create bash script file! Falling back to Extendscript...");
                             return splitScene(comp, layer);
@@ -798,6 +794,8 @@ sendToRenderQueue = false;
             return false;
         }
 
+        //dont touch
+        //somehow helps with making the window dockable
         win.onResizing = win.onResize = function() {
             this.layout.resize();
         };
