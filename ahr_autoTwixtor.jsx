@@ -202,6 +202,12 @@ sendToRenderQueue = false;
                 return false;
             }
 
+            // Check if 3a fps is reasonable if 3a is checked
+            if((parseInt(everyXFrames.value) < 1 || parseInt(everyXFrames.value) > 24) && constantFPS.value == true) {
+                alert("3A needs to be animated between 0 and 24 frames!");
+                return false;
+            }
+
             //if the script exists outside of program files close it on being run
             //bc its prob being run as a script not a docked item
             var scriptFile = new File($.fileName); //references this file
