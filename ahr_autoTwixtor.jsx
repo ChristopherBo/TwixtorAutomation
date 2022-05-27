@@ -114,6 +114,10 @@ animatedOn = 2;
             //make selection something real, otherwise it'll be blank/not one of the options
             inLayer.selection = 0;
             outLayer.selection = 0;
+            
+            //remove leftover blank option
+            inLayer.remove(newNames.length);
+            outLayer.remove(newNames.length);
         }
 
         var groupOne = mainGroup.add("group");
