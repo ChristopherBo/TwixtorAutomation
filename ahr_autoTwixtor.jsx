@@ -316,7 +316,7 @@ animatedOn = 2;
             //0 fps == default from GUI
             //if gui is nothing set to preferences, otherwiselayer 1's fps
             //if layer 1 doesnt have fps set it to 23.976
-            if((fps == undefined || fps == 0) && precomp.layers[1].frameRate != undefined) { fps = everyXFrames.value }
+            if((fps == undefined || fps == 0) && precomp.frameRate != undefined) { fps = 23.976 / parseInt(everyXFrames.text) }
             if(fps == 0 || fps == undefined) { fps = precomp.layers[1].frameRate }
             if(fps == 0 || fps == undefined) { fps = 23.976 }
 
