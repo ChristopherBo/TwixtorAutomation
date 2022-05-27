@@ -206,7 +206,13 @@ sendToRenderQueue = false;
                 return false;
             }
 
-
+            //if the script exists outside of program files close it on being run
+            //bc its prob being run as a script not a docked item
+            var scriptFile = new File($.fileName); //references this file
+            var scriptPath = scriptFile.parent; // leads to C:\Users\test\Documents\ae scripting
+            if(scriptPath.relativeURI.indexOf("Program Files") == -1) {
+                win.close();
+            }
             // if(closeOnUseCheck.value) {
             //     win.close();
             // }
