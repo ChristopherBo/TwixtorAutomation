@@ -376,8 +376,19 @@ animatedOn = 2;
                 for(var i=2; i < splits.length-1; i++) {
                     tempfps += 1 / (splits[i] - splits[i-1]);
                 }
-                fps = Math.round(tempfps / splits.length); //round to int
+                fps = tempfps / splits.length;
             }
+
+            //figure out what dividend of the clip fps it matches closest to
+            var smallest = 999;
+            var tempFPS;
+            for(var i=0; i <= 10; i++) {
+                if(smallest > Math.abs((comp.frameRate/i) - fps)) {
+                    smallest = Math.abs((comp.frameRate/i) - fps);
+                    tempFPS = comp.frameRate/i;
+                }
+            }
+            fps = tempFPS;
 
             //clean up by removing precomp
             if(precomp != undefined && precomp != null) {
