@@ -203,17 +203,21 @@ sendToRenderQueue = false;
             }
 
             // Check if 3a fps is reasonable if 3a is checked
-            if((parseInt(everyXFrames.value) < 1 || parseInt(everyXFrames.value) > 24) && constantFPS.value == true) {
+            if(debug.value) { writeToDebugFile("Making sure 3a's constant is between 0 and 24...\n"); }
+            if((parseInt(everyXFrames.value) < 0 || parseInt(everyXFrames.value) > 24) && constantFPS.value == true) {
                 alert("3A needs to be animated between 0 and 24 frames!");
                 return false;
             }
 
             //if the script exists outside of program files close it on being run
             //bc its prob being run as a script not a docked item
+            if(debug.value) { writeToDebugFile("Checking if script is not in Program Files...\n"); }
             var scriptFile = new File($.fileName); //references this file
             var scriptPath = scriptFile.parent; // leads to C:\Users\test\Documents\ae scripting
-            if(scriptPath.relativeURI.indexOf("Program Files") == -1) {
+            if(scriptPath.fsName.indexOf("Program Files") == -1) {
+                if(debug.value) { writeToDebugFile("Script not in Program Files, closing window...\n"); }
                 win.close();
+                if(debug.value) { writeToDebugFile("Window closed.\n"); }
             }
             // if(closeOnUseCheck.value) {
             //     win.close();
