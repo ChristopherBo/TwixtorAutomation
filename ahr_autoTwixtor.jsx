@@ -261,11 +261,13 @@ sendToRenderQueue = false;
             var lastLayer = findLayerFromName(comp, outLayer.selection);
 
             //if firstlayer's index is larger than lastlayer's swap what they are
+            if(debug.value) { writeToDebugFile("Checking first and last layer indexes...\n") }
             if(firstLayer.index > lastLayer.index) {
                 if(debug.value) { writeToDebugFile("Swapping first and last layer\n") }
                 firstLayer, lastLayer = lastLayer, firstLayer;
             }
 
+            if(debug.value) { writeToDebugFile("Getting all layers into a single list...\n") }
             //base case just add the 1 layer
             if(firstLayer.index == lastLayer.index) {
                 layers = [firstLayer];
@@ -275,16 +277,27 @@ sendToRenderQueue = false;
                     layers.push(comp.layer(i));
                 }
             }
+            if(debug.value) { writeToDebugFile("Success.\n") }
 
             if(parseFloat(app.version.substring(0,4)) >= 22.3) { //only for ae v22.3 and above
                 //if there is multiple shots detect and cut
                 if(autoCut.value == true) {
                     //https://ae-scripting.docsforadobe.dev/layers/layer.html?highlight=Scene#layer-dosceneeditdetection
-                    //UNTESTED since it only exists in ae v22.3+
-                    var layer = precomp.layer[1];
+                    //iterate over layers and do scene detection
+                    var times;
+                    for(var i=0; i < layers.length; i++) {
+                        tmplayer = layers[i];
 
-                    //splits clip when it detects a diff clip
-                    layer.doSceneEditDetection(2); //2 may have to be replaced with SceneEditDetectionMode.SPLIT
+                        //splits clip when it detects a diff clip
+                        times = tmplayer.doSceneEditDetection(SceneEditDetectionMode.SPLIT); //2 may have to be replaced with SceneEditDetectionMode.SPLIT
+                    }
+                    
+                    //now have to redefine the layers list
+                    // for(var i=1; i <= comp.layers.length; i++) {
+                    //     if(times.indexOf(comp.layer(i).inPoint) != -1 && layers.indexOf(comp.layer(i)) == -1) {
+                    //         layers.push(comp.layer(i));
+                    //     }
+                    // }
                 }
             }
 
