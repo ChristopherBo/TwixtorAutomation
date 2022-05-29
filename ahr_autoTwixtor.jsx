@@ -1,4 +1,4 @@
-//ahr_autoTwixtor.jsx Version 0.71
+//ahr_autoTwixtor.jsx Version 0.72
 // Copyright (c) 2022 AHRevolvers. All rights reserved.
 //
 // This script will automatically setup twixtor for a user based on this article,
@@ -27,14 +27,14 @@ sendToRenderQueue = false;
 
     var ahr_autoTwixtor = new Object();	// Store globals in an object
 	ahr_autoTwixtor.scriptName = "ahr_autoTwixtor";
-	ahr_autoTwixtor.scriptTitle = ahr_autoTwixtor.scriptName + "v0.71";
+	ahr_autoTwixtor.scriptTitle = ahr_autoTwixtor.scriptName + "v0.72";
     
     //////////////////////////////////////////
     //MAIN UI
     //////////////////////////////////////////
     scriptBuildUI(thisObj)
     function scriptBuildUI(thisObj) {
-        var win = (thisObj instanceof Panel) ? thisObj : new Window('palette', "AHRevolver's Auto Twixtor Script v0.71", undefined, {
+        var win = (thisObj instanceof Panel) ? thisObj : new Window('palette', "AHRevolver's Auto Twixtor Script v0.72", undefined, {
             resizeable: true
         });
         win.spacing = 0;
@@ -779,7 +779,7 @@ sendToRenderQueue = false;
                         overwriteToFile(bashScript, "");
                         if(!bashScript.exists) { //nothing worked, fallback to legacy motion detection
                             if(debug.value) { writeToDebugFile("All bash script locations failed. Exiting...\n"); }
-                            alert("ERROR: pythonFPSDetector could not create bash script file! Falling back to Extendscript...");
+                            alert("ERROR: Could not create bash script file! Make sure Write perms are enabled in Edit > Preferences!");
                             return splitScene(comp, layer);
                         }
                     }
