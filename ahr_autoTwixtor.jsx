@@ -136,30 +136,57 @@ sendToRenderQueue = false;
         // inputFPS.preferredSize.width = 45;
         // inputFPS.preferredSize.height = 17;
         var constantFPS = groupPanel.add("radiobutton", undefined, "Constant Framerate (3a)");
-        constantFPS.value = true;
+        constantFPS.value = false;
         if(parseFloat(app.version.substring(0,4)) >= 22.3) { //only for ae v22.3 and above
             var cutFPS = groupPanel.add("radiobutton", undefined, "Framerate occasionally changes (3b) (UNTESTED)");
             cutFPS.value = false;
         }
         var variableFPS = groupPanel.add("radiobutton", undefined, "Framerate changes often (3c)");
-        variableFPS.value = false;
-        var detectFPS = groupPanel.add("checkbox", undefined, "Detect framerate(s) of clips");
+        variableFPS.value = true;
+
+        //3a framerate
+        var ThreeAGroup = groupOptions.add("panel", undefined, "3A Options");
+        ThreeAGroup.visible = false; //make entire group start invis bc 3c is default
+        var detectFPS = ThreeAGroup.add("checkbox", undefined, "Detect framerate(s) of clips");
         detectFPS.value = true;
+
+        var ThreeAFramerateGroup = ThreeAGroup.add("group", undefined, "ThreeAFramerateGroup");
+        ThreeAFramerateGroup.orientation = "row";
+        ThreeAFramerateGroup.visible = false; //make the entire group invis by default
+        var ThreeAText = ThreeAFramerateGroup.add("statictext", undefined, "New frame every:");
+        var everyXFrames = ThreeAFramerateGroup.add("edittext", undefined, animatedOn);
+        everyXFrames.preferredSize.width = 17;
+        everyXFrames.preferredSize.height = 17;
+        var ThreeAText = ThreeAFramerateGroup.add("statictext", undefined, "frames");
+
+        //when detectFPS is on disable viewing the manual input and vice versa
+        detectFPS.onClick = function() {
+            if(!detectFPS.value) {
+                ThreeAFramerateGroup.visible = true;
+            } else {
+                ThreeAFramerateGroup.visible = false;
+            }
+        }
+
+        //when 3a is on turn on 3a group visibility & vice versa when 3a isn't selected
+        constantFPS.onClick = function() {
+            ThreeAGroup.visible = true;
+        }
+        if(parseFloat(app.version.substring(0,4)) >= 22.3) { //only for ae v22.3 and above
+            cutFPS.onClick = function() {
+                ThreeAGroup.visible = false;
+            }
+        }
+        variableFPS.onClick = function() {
+            ThreeAGroup.visible = false;
+        }
+        
 
         //experimental features and misc buttons
         if(parseFloat(app.version.substring(0,4)) >= 22.3) { //only for ae v22.3 and above
             var autoCut = groupOptions.add("checkbox", undefined, "Scene Detection (multiple shots in each layer) (UNTESTED)");
             autoCut.value = false;
         }
-
-        //3a framerate
-        var ThreeAFramerateGroup = groupOptions.add("group", undefined, "ThreeAFramerateGroup");
-        ThreeAFramerateGroup.orientation = "row";
-        var ThreeAText = ThreeAFramerateGroup.add("statictext", undefined, "3a: New frame every:");
-        var everyXFrames = ThreeAFramerateGroup.add("edittext", undefined, animatedOn);
-        everyXFrames.preferredSize.width = 17;
-        everyXFrames.preferredSize.height = 17;
-        var ThreeAText = ThreeAFramerateGroup.add("statictext", undefined, "frames");
 
         //threshold- archived for now
         // var thresholdGroup = groupOptions.add("group", undefined, "thresholdGroup");
