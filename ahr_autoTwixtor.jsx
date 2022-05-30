@@ -282,25 +282,79 @@ sendToRenderQueue = false;
             if(parseFloat(app.version.substring(0,4)) >= 22.3) { //only for ae v22.3 and above
                 //if there is multiple shots detect and cut
                 if(autoCut.value == true) {
+                    if(debug.value) { writeToDebugFile("Auto cutting...\n") }
                     //https://ae-scripting.docsforadobe.dev/layers/layer.html?highlight=Scene#layer-dosceneeditdetection
                     //iterate over layers and do scene detection
                     var times;
+                    var tmpLayer;
+                    var tmpLayers = [];
+                    var removeList = [];
                     for(var i=0; i < layers.length; i++) {
-                        tmplayer = layers[i];
+                        tmpLayer = layers[i];
+
+                        //make sure the layers time remap is turned off so scene detection works
+                        tmpLayer.timeRemapEnabled = false;
 
                         //splits clip when it detects a diff clip
-                        times = tmplayer.doSceneEditDetection(SceneEditDetectionMode.SPLIT); //2 may have to be replaced with SceneEditDetectionMode.SPLIT
+                        times = tmpLayer.doSceneEditDetection(SceneEditDetectionMode.NONE);
+
+                        if(times.length > 1) {
+                            //cut the clip on the times specified
+                            var layer1 = tmpLayer;
+                            var layer2;
+                            var j=0;
+                            while(j < times.length) {
+                                layer2 = layer1.duplicate();
+                                layer2.inPoint = times[j];
+                                if(times[j+1] != undefined) {
+                                    layer2.outPoint = times[j+1];
+                                }
+
+                                //duplicated layers are created above the og
+                                layer2.moveAfter(layer1);
+                                
+                                tmpLayers.push(layer2);
+
+                                //reset things
+                                layer2 = layer1;
+                                j++;
+                            }
+                            //remove og layer
+                            removeList.push(layer2);
+                            //layer2.remove();
+                        }
+                        
                     }
-                    
-                    //now have to redefine the layers list
-                    // for(var i=1; i <= comp.layers.length; i++) {
-                    //     if(times.indexOf(comp.layer(i).inPoint) != -1 && layers.indexOf(comp.layer(i)) == -1) {
-                    //         layers.push(comp.layer(i));
-                    //     }
-                    // }
+                    if(debug.value) { writeToDebugFile("Success.\n") }
+
+                    //remove unwanted layers from layers and remove them from existence >:3
+                    for(var i=0; i < removeList.length; i++) {
+                        layers.splice(removeList[i].index, 1);
+                        removeList[i].remove();
+                    }
+
+                    if(debug.value) { writeToDebugFile("Adding cutted layers to layerlist...\n") }
+                    //tmpLayers now holds all the layers layers needs
+                    //because all the old layers are invalid
+                    if(tmpLayers.length > 0) {
+                        for(var i=0; i < layers.length; i++) {
+                            try {
+                                //if its an existing video layer go
+                                if(layers[i] instanceof AVLayer) {
+                                    tmpLayers.push(layers[i]);
+                                }
+                            } catch (e) {
+                                //do nothing- we expect it to fail when it hits objects that DNE anymore
+                            }
+                        }
+                        layers = tmpLayers;
+                    }
+
+                    if(debug.value) { writeToDebugFile("Success.\n") }   
                 }
             }
 
+            if(debug.value) { writeToDebugFile("Starting to precomp layers...\n") }
             //precomp range of layers
             var twixFolder = app.project.items.addFolder("Twixtor Precomps");
             for(var i=0; i < layers.length; i++) {
