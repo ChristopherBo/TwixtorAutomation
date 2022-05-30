@@ -1,4 +1,4 @@
-//ahr_autoTwixtor.jsx Version 0.72
+//ahr_autoTwixtor.jsx Version 1.0
 // Copyright (c) 2022 AHRevolvers. All rights reserved.
 //
 // This script will automatically setup twixtor for a user based on this article,
@@ -27,14 +27,14 @@ sendToRenderQueue = false;
 
     var ahr_autoTwixtor = new Object();	// Store globals in an object
 	ahr_autoTwixtor.scriptName = "ahr_autoTwixtor";
-	ahr_autoTwixtor.scriptTitle = ahr_autoTwixtor.scriptName + "v0.72";
+	ahr_autoTwixtor.scriptTitle = ahr_autoTwixtor.scriptName + "v1.0";
     
     //////////////////////////////////////////
     //MAIN UI
     //////////////////////////////////////////
     scriptBuildUI(thisObj)
     function scriptBuildUI(thisObj) {
-        var win = (thisObj instanceof Panel) ? thisObj : new Window('palette', "AHRevolver's Auto Twixtor Script v0.72", undefined, {
+        var win = (thisObj instanceof Panel) ? thisObj : new Window('palette', "AHRevolver's Auto Twixtor Script v1.0", undefined, {
             resizeable: true
         });
         win.spacing = 0;
@@ -66,8 +66,9 @@ sendToRenderQueue = false;
         helpText.add("statictext", undefined, " - 3c: Precomp the clip, add time remapping, and force every frame to be a new", {name: "helpText"}); 
         helpText.add("statictext", undefined, "frame. ", {name: "helpText"}); 
         helpText.add("statictext", undefined, "", {name: "helpText"}); 
-        helpText.add("statictext", undefined, "Option 3b, 3c, and Scene Detection all use an external Python file to deal with", {name: "helpText"}); 
-        helpText.add("statictext", undefined, "image detection and are still experimental. ", {name: "helpText"}); 
+        helpText.add("statictext", undefined, "Options 3c and 3a(checked) use an external Python file to deal with image", {name: "helpText"}); 
+        helpText.add("statictext", undefined, "detection. Scene Detection relies on an extremely experimental new feature", {name: "helpText"}); 
+        helpText.add("statictext", undefined, "from AE v22.3+ and is very janky, expect bugs galore when attempting it.", {name: "helpText"}); 
         helpText.add("statictext", undefined, "", {name: "helpText"}); 
         helpText.add("statictext", undefined, "If you can't see certain features, your After Effects needs to be v22.3 or later.", {name: "helpText"}); 
         helpText.add("statictext", undefined, "", {name: "helpText"}); 
