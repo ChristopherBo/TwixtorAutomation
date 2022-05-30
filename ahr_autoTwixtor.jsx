@@ -129,18 +129,13 @@ sendToRenderQueue = false;
         var groupOptions = mainGroup.add("group", undefined, "groupOptions");
         groupOptions.orientation = "column";
         var groupPanel = groupOptions.add("panel", undefined, "Twixtor Settings");
-        // archived manual fps input, bugs out the radio buttons unfortunately
-        // var inputFPSGroup = groupPanel.add("group", undefined, "inputFPSGroup");
-        // inputFPSGroup.orientation = "row";
-        // var inputFPS = inputFPSGroup.add("edittext", undefined, "");
-        // inputFPS.preferredSize.width = 45;
-        // inputFPS.preferredSize.height = 17;
         var constantFPS = groupPanel.add("radiobutton", undefined, "Constant Framerate (3a)");
         constantFPS.value = false;
-        if(parseFloat(app.version.substring(0,4)) >= 22.3) { //only for ae v22.3 and above
-            var cutFPS = groupPanel.add("radiobutton", undefined, "Framerate occasionally changes (3b) (UNTESTED)");
-            cutFPS.value = false;
-        }
+        //archived 3b because i doubt people will use it over 3c + requires algorithm
+        // if(parseFloat(app.version.substring(0,4)) >= 22.3) { //only for ae v22.3 and above
+        //     var cutFPS = groupPanel.add("radiobutton", undefined, "Framerate occasionally changes (3b) (UNTESTED)");
+        //     cutFPS.value = false;
+        // }
         var variableFPS = groupPanel.add("radiobutton", undefined, "Framerate changes often (3c)");
         variableFPS.value = true;
 
@@ -172,11 +167,11 @@ sendToRenderQueue = false;
         constantFPS.onClick = function() {
             ThreeAGroup.visible = true;
         }
-        if(parseFloat(app.version.substring(0,4)) >= 22.3) { //only for ae v22.3 and above
-            cutFPS.onClick = function() {
-                ThreeAGroup.visible = false;
-            }
-        }
+        // if(parseFloat(app.version.substring(0,4)) >= 22.3) { //only for ae v22.3 and above
+        //     cutFPS.onClick = function() {
+        //         ThreeAGroup.visible = false;
+        //     }
+        // }
         variableFPS.onClick = function() {
             ThreeAGroup.visible = false;
         }
@@ -184,7 +179,7 @@ sendToRenderQueue = false;
 
         //experimental features and misc buttons
         if(parseFloat(app.version.substring(0,4)) >= 22.3) { //only for ae v22.3 and above
-            var autoCut = groupOptions.add("checkbox", undefined, "Scene Detection (multiple shots in each layer) (UNTESTED)");
+            var autoCut = groupOptions.add("checkbox", undefined, "Scene Detection (multiple shots in each layer) (EXPERIMENTAL)");
             autoCut.value = false;
         }
 
@@ -406,12 +401,12 @@ sendToRenderQueue = false;
                     precompLayer.timeRemap.removeKey(precompLayer.timeRemap.nearestKeyIndex(precompLayer.outPoint));
                     precompLayer.outPoint = precompLayer.inPoint + ((keyframes + 1)/comp.frameRate);
                 }
-                if(parseFloat(app.version.substring(0,4)) >= 22.3) { //only for ae v22.3 and above
-                    if(cutFPS.value == true) { //3b
-                        if(debug.value) { writeToDebugFile("Twix method 3b chosen.\n"); }
-                        twixCut(precomp);
-                    }
-                }
+                // if(parseFloat(app.version.substring(0,4)) >= 22.3) { //only for ae v22.3 and above
+                //     if(cutFPS.value == true) { //3b
+                //         if(debug.value) { writeToDebugFile("Twix method 3b chosen.\n"); }
+                //         twixCut(precomp);
+                //     }
+                // }
                 if(debug.value) { writeToDebugFile("Finished twixtoring precomp " + precomp.name + "\n"); }
             }
             
@@ -518,20 +513,24 @@ sendToRenderQueue = false;
             return fps;
         }
 
-        //NOT TESTED/UNFINISHED function
-        //If you want to contribute and you have AE v22.3+, test and/or fix this
+        //UNFINISHED ARCHIVED function for 3b
+        //feel free to contribute if you'd like
+        //this requires pulling times with the motion detector, then figuring out patterns
+        //in the frametimes between each animated frame
+        //ex frametimes: 4 4 4 4 4 2 2 2 2 2 then split between 4 and 2 and put them into precomps and twixConstant individually
+        //however we know it's definitely not that easy, there will probably be some irl error like: 4 4 5 4 2 3 3 4 3 1
         function twixCut(precomp) {
             if(debug.value) { writeToDebugFile("twixCut: starting...\n"); }
             //I wanted to add scene detection via https://ae-scripting.docsforadobe.dev/layers/layer.html?highlight=Scene#layer-dosceneeditdetection
             //but it only exists in ae v22.3+
-            var layer = precomp.layer[1];
+            var layer = precomp.layers[1];
 
             //splits and precomps at edit points
-            layer.doSceneEditDetection(3); //3 may have to be replaced with SceneEditDetectionMode.SPLIT_PRECOMP
+            layer.doSceneEditDetection(SceneEditDetectionMode.SPLIT_PRECOMP);
 
             //go through each layer and apply 3a to them
             var layers = precomp.layers;
-            for(var i=0; i < layers.length; i++) {
+            for(var i=1; i < layers.length; i++) {
                 twixConstant(layers[i]);
             }
         }
